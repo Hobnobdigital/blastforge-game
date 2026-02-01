@@ -1,8 +1,66 @@
-import { GameController } from '@core/GameController';
+import { GameLoop } from '@core/GameLoop';
+import { createInitialState } from '@core/StateManager';
+import { GameState } from '@core/types';
+import { InputManager } from '@input/InputManager';
+import { SceneManager } from '@rendering/SceneManager';
+import { AudioEngine } from '@audio/AudioEngine';
+import { movePlayer } from '@systems/GridSystem';
+import { placeBomb, tickBombs, primeBomb, rushBomb, detonateBomb } from '@systems/BombSystem';
+import { spawnExplosion, tickExplosions } from '@systems/ExplosionSystem';
+import { collectPowerUps } from '@systems/PowerUpSystem';
 
 // ── Bootstrap ──
-const game = new GameController();
-game.start();
+const state: GameState = createInitialState();
+const input = new InputManager();
+const scene = new SceneManager();
+const audio = new AudioEngine();
 
-// Expose for debugging (optional)
-(window as any).blastforge = game;
+const fpsEl = document.getElementById('fps-counter')!;
+
+function update(dt: number, tick: number): void {
+  state.tick = tick;
+
+  // Read input
+  const inp = input.poll();
+  const player = state.players[0];
+  if (player?.alive) {
+    player.moveDir = inp.moveDir;
+    movePlayer(state, 0, dt);
+
+    if (inp.placeBomb) {
+      if (placeBomb(state, 0)) audio.playBombPlace();
+    }
+
+    if (inp.fuseAction === 'prime') primeBomb(state, 0);
+    else if (inp.fuseAction === 'rush') rushBomb(state, 0);
+    else if (inp.fuseAction === 'detonate') {
+      const pos = detonateBomb(state, 0);
+      if (pos) {
+        spawnExplosion(state, pos, player.bombRange);
+        audio.playExplosion();
+      }
+    }
+  }
+
+  // Tick bombs
+  const detonated = tickBombs(state, dt);
+  for (const pos of detonated) {
+    spawnExplosion(state, pos, state.players[0]?.bombRange ?? 2);
+    audio.playExplosion();
+  }
+
+  // Tick explosions
+  tickExplosions(state, dt);
+
+  // Collect power-ups
+  collectPowerUps(state);
+}
+
+function render(alpha: number): void {
+  scene.syncState(state, alpha);
+  scene.render();
+  fpsEl.textContent = `${gameLoop.fps} FPS`;
+}
+
+const gameLoop = new GameLoop(update, render);
+gameLoop.start();
