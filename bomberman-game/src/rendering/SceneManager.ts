@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { GameState, TileType, GRID_SIZE, TILE_WORLD_SIZE } from '@core/types';
+import { WeatherSystem, WeatherType } from '@systems/WeatherSystem';
+import { LevelTheme } from '@core/ExtendedTypes';
 
 export class SceneManager {
   readonly scene: THREE.Scene;
@@ -34,6 +36,10 @@ export class SceneManager {
   private geoPowerUp = new THREE.BoxGeometry(0.4, 0.4, 0.4);
 
   private dummy = new THREE.Object3D();
+  
+  // Weather system
+  private weatherSystem: WeatherSystem;
+  private currentTheme: LevelTheme = LevelTheme.CLASSIC;
 
   constructor() {
     this.scene = new THREE.Scene();
@@ -101,9 +107,12 @@ export class SceneManager {
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(window.innerWidth, window.innerHeight);
     });
+
+    // Initialize weather system
+    this.weatherSystem = new WeatherSystem(this.scene);
   }
 
-  syncState(state: GameState, _alpha: number): void {
+  syncState(state: GameState, _alpha: number, deltaTime: number = 0.016): void {
     // Update blocks
     let hardCount = 0;
     let softCount = 0;
@@ -217,8 +226,38 @@ export class SceneManager {
     }
   }
 
-  render(): void {
+  render(deltaTime: number = 0.016): void {
+    // Update weather system
+    this.weatherSystem.update(deltaTime);
+    
     this.renderer.render(this.scene, this.camera);
+  }
+
+  // Weather control methods
+  setWeather(weather: WeatherType, intensity: number = 0.5): void {
+    this.weatherSystem.setWeather(weather, intensity);
+  }
+
+  setWeatherEnabled(enabled: boolean): void {
+    this.weatherSystem.setEnabled(enabled);
+  }
+
+  setWeatherIntensity(intensity: number): void {
+    this.weatherSystem.setIntensity(intensity);
+  }
+
+  setTheme(theme: LevelTheme): void {
+    this.currentTheme = theme;
+    const weather = WeatherSystem.getWeatherForTheme(theme);
+    if (weather !== WeatherType.NONE) {
+      this.weatherSystem.setWeather(weather, 0.6);
+    } else {
+      this.weatherSystem.setWeather(WeatherType.NONE);
+    }
+  }
+
+  getCurrentTheme(): LevelTheme {
+    return this.currentTheme;
   }
 
   private static showWebGLError(): void {
