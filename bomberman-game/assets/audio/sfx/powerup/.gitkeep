@@ -1,0 +1,8 @@
+# Power-Up Sounds Directory
+Place power-up related sound effects here.
+
+## Expected Files:
+- powerup_collect_01.ogg - Power-up collection (normal)
+- powerup_collect_02.ogg - Power-up collection (variation)
+- powerup_collect_rare.ogg - Rare power-up collection (special)
+- powerup_spawn.ogg - Power-up appears/spawns

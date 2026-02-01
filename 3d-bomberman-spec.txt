@@ -1,0 +1,407 @@
+3D Bomberman-Inspired Web App — LLM Agent Instructions
+
+Instructions for Your
+LLM Agent
+3D Bomberman-Inspired Web App
+10/10 Quality Standard
+
+A comprehensive specification covering game design, technical architecture,
+art direction, audio design, asset pipelines, QA, and production milestones
+for building a premium 3D grid-based arena game.
+
+Build Agent Reference Document — Confidential
+
+Page 10 of 10
+
+3D Bomberman-Inspired Web App — LLM Agent Instructions
+
+Table of Contents
+1
+
+Hard Requirements (Non-Negotiables)
+
+2
+
+Product Definition
+
+3
+
+Twist Selection Requirements
+
+4
+
+Gameplay Systems
+
+5
+
+Web Tech Architecture Requirements
+
+6
+
+Camera and Readability Rules
+
+7
+
+Art Direction
+
+8
+
+Generative AI Asset Pipeline
+
+9
+
+Audio: SFX + Soundtrack
+
+10
+
+Game Modes and Retention Design
+
+11
+
+Online Multiplayer
+
+12
+
+QA and Testing
+
+13
+
+Production Plan and Delivery Milestones
+
+14
+
+Final Package
+
+15
+
+Quality Bar (Definition of 10/10)
+
+Page 10 of 10
+
+3D Bomberman-Inspired Web App — LLM Agent Instructions
+
+Section 1
+
+Hard Requirements (Non-Negotiables)
+The following requirements are absolute and must be satisfied for the project to be considered complete.
+• Web App: The game is a web app that runs smoothly in modern browsers (desktop first; mobile
+optional but plan for it).
+• 3D + Grid: It is 3D with a grid-based rule set (Bomberman-style logic), but must remain visually
+readable at all times.
+• Original Twist: Must include an original twist that adds mastery without breaking the core loop.
+• Ship Quality: Must ship with: polished UI/UX (menus, settings, tutorial), professional SFX +
+soundtrack, high-quality visuals (3D assets, VFX, lighting), and robust testing for deterministic
+gameplay.
+• Asset Pipeline: You must use an asset pipeline: source licensed assets OR generate originals using
+generative AI integrations; track prompts/settings/versions for every generated asset; ensure
+legal/IP-safe originality (no Bomberman characters, names, logos, silhouettes).
+
+Section 2
+
+Product Definition You Must Deliver First
+Produce a concise design package before building anything. This section defines the three core
+deliverables.
+
+A) One-Page Concept
+• Game name (original)
+• Target player (who it's for)
+• Core fantasy (what the player feels)
+• Core loop (30-second summary)
+• Twist (one sentence)
+• Key differentiator (why this beats "another Bomberman clone")
+
+B) Pillars (3–5)
+For each pillar, define:
+• Player benefit
+• How it shows up in gameplay
+• How we measure it (e.g., rematch rate, session time, "fair death" perception)
+
+Page 10 of 10
+
+3D Bomberman-Inspired Web App — LLM Agent Instructions
+
+C) MVP vs “Delight”
+• MVP: the minimum set to ship a great game
+• Delight: upgrades that make it a 10/10 (visual polish, audio depth, extra maps, ranked, etc.)
+Acceptance Criteria
+✓ Your concept must explicitly protect fairness/readability in 3D
+✓ The twist must include counterplay and clear telegraphs
+
+Section 3
+
+Twist Selection Requirements
+Choose one twist direction and implement it deeply:
+
+Option 1: Vertical Multi-Layer Arenas (2–3 layers)
+– Clear transitions (ramps/lifts)
+– Explosions affect other layers only through explicit vents/shafts that are telegraphed
+
+Option 2: Fuse Manipulation Mind-Games
+– Limited "prime/shorten/remote detonate"
+– Strong telegraphs so opponents can read threat timing
+
+Option 3: Material-Based Blast Behavior (Deterministic)
+– Tile materials that alter propagation in predictable ways (no chaotic physics)
+
+Acceptance Criteria
+✓ Must preserve the classic loop: destroy soft blocks → power-ups → territory control → trapping
+✓ Must produce at least 10 "interaction tiles" (gadgets/hazards/materials) that create memorable plays
+✓ Must include 3 example "pro plays" enabled by the twist
+
+Section 4
+
+Gameplay Systems (Must Be Deterministic and
+Testable)
+A) Grid & Movement
+• Movement is grid-aligned (snap-to-tile) with consistent collision rules
+• No slippery or ambiguous cornering
+
+Page 10 of 10
+
+3D Bomberman-Inspired Web App — LLM Agent Instructions
+
+• Every tile state is deterministic (same inputs → same outcomes)
+
+B) Bomb Rules
+• Orthogonal "cross" propagation
+• Hard blocks stop blasts; soft blocks break and can reveal drops
+• Chain reactions supported
+• Fuse timing must be readable and consistent
+
+C) Power-Ups
+Minimum set:
+• +Bomb Count
+• +Blast Range
+• +Speed
+• +2 twist-related power-ups (original)
+Define:
+• Drop rules (rarity, where they spawn)
+• Whether they can be destroyed by explosions
+• Stacking rules and caps
+Acceptance Criteria
+✓ Provide unit tests for explosion propagation and tile outcomes
+✓ Provide simulation/replay logging so issues can be reproduced exactly
+✓ 8-player chaos must still be readable
+
+Section 5
+
+Web Tech Architecture Requirements
+You must propose and implement a web stack that supports a premium 3D game.
+
+Core Requirements
+• 3D rendering: WebGL-based (engine/framework you choose)
+• Game loop: fixed timestep simulation for determinism
+• Input: keyboard/controller support; responsive input buffering
+• Audio: real-time mixing with separate volume sliders (Music/SFX/UI)
+• State: clean separation between simulation state and render state
+
+Must-Have Engineering Features
+
+Page 10 of 10
+
+3D Bomberman-Inspired Web App — LLM Agent Instructions
+
+• Deterministic seed support (for maps/drops if randomized)
+• Replay/event log recorder
+• Performance profiling plan (FPS targets, budget per frame)
+• Accessible settings: motion reduction options, flash intensity option, colorblind-friendly indicators (or at
+least strong contrast)
+Acceptance Criteria
+✓ Document why you chose your engine/framework and how it meets performance + determinism
+✓ The game must maintain stable frame pacing under stress (many explosions)
+
+Section 6
+
+Camera and Readability Rules (Critical in 3D)
+Camera Requirements
+• Default camera: high angled top-down 3D (isometric-ish), optimized for readability
+• Player must see enough of the arena to avoid "cheap deaths"
+• No essential hazard should occur offscreen without warning
+
+VFX Requirements
+• Explosions must look incredible but never obscure tile readability
+• VFX must scale down intelligently in heavy scenes
+Acceptance Criteria
+✓ Provide a "clarity under stress" test scenario: max explosions + max players
+✓ Provide a UX checklist proving players can predict danger tiles correctly
+
+Section 7
+
+Art Direction (Original IP, AAA Polish)
+You must create an original art direction.
+
+Deliverables
+Style Bible
+• Palette
+• Lighting mood
+
+Page 10 of 10
+
+3D Bomberman-Inspired Web App — LLM Agent Instructions
+
+• Materials rules
+• Shape language (how props/characters look)
+• UI style (icons, fonts, spacing rules)
+
+Asset List
+• Tiles (hard, soft, special)
+• Bombs (variants if any)
+• Explosions/VFX
+• Power-up icons
+• Characters/avatars (original)
+• Menus and HUD
+Acceptance Criteria
+✓ A new player can instantly distinguish: walkable vs blocked, hard vs soft blocks, bombs + fuse state,
+pickups + rarity tier
+✓ No direct imitation of Bomberman identity cues (characters, names, signature look)
+
+Section 8
+
+Generative AI Asset Pipeline
+You must create a pipeline that can:
+• 1. Generate or source concept art for environments, props, UI
+• 2. Produce consistent iconography (power-ups, UI)
+• 3. Produce textures/materials (or stylized equivalents)
+• 4. Produce audio drafts (SFX and/or music) OR source from licensed libraries
+• 5. Auto-organize all assets into repo structure with naming conventions
+
+Mandatory Metadata for Every Generated Asset
+• Prompt text
+• Negative prompt (if used)
+• Seed/settings (if supported)
+• Version id / timestamp
+• Tool/model used
+• License/terms note or source attribution
+• Export formats
+
+Consistency Enforcement
+• Build prompt templates that enforce the style bible
+
+Page 10 of 10
+
+3D Bomberman-Inspired Web App — LLM Agent Instructions
+
+• Implement a "style consistency check" (your method) so icons and UI assets match
+Acceptance Criteria
+✓ Random sample of 30 UI icons: at least 90% look like one coherent set
+✓ Asset repo must be clean, searchable, and reproducible (regenerate if needed)
+
+Section 9
+
+Audio: SFX + Soundtrack Must Feel Premium
+Deliverables
+• SFX list: every action has a sound — place bomb, fuse tick, pickup, hit, win/lose, UI
+
+Music Plan
+• Menu theme
+• Gameplay themes (calm → intense escalation)
+• Stingers (victory/defeat)
+
+Mixing Requirements
+• Volume sliders: Master, Music, SFX, UI
+• Spatial audio for hazards (directional cues)
+Acceptance Criteria
+✓ Provide an audio "readability test": players can locate threats by sound direction
+✓ Provide a "mix pass" checklist so explosions don't drown UI feedback
+
+Section 10
+
+Game Modes and Retention Design
+Must Ship With
+• Core Arena Mode (local vs bots minimum; online optional if time allows)
+• Party Mode modifiers (short, chaotic variants)
+• Solo Challenge (puzzle rooms or roguelite tower)
+
+Retention System (Non-Pay-to-Win)
+• Unlock cosmetics via play (not power)
+
+Page 10 of 10
+
+3D Bomberman-Inspired Web App — LLM Agent Instructions
+
+• Mastery challenges that teach advanced play
+• Tutorial under 3 minutes that teaches: trapping basics, chain reactions, the twist mechanics
+Acceptance Criteria
+✓ Track at least: session length, rematch rate, rage-quit rate, tutorial completion rate
+✓ Player deaths should feel "outplayed" not "unfair/offscreen"
+
+Section 11
+
+Online Multiplayer (Optional but If Included, Must Be
+Real)
+If you include online multiplayer:
+• Choose a netcode approach and justify it (authoritative vs peer)
+• Must handle latency gracefully and avoid "teleport deaths"
+• Must include basic anti-cheat assumptions (server-authoritative logic helps)
+Acceptance Criteria
+✓ Test scenario: 150ms latency still feels playable and fair
+✓ Deterministic server validation of bomb/explosion outcomes
+
+Section 12
+
+QA and Testing
+Required Automated Tests
+• Explosion propagation correctness
+• Tile state transitions (soft block destroyed, power-up spawn, chain reaction)
+• Movement/collision determinism
+• Map validation rules (spawn safety, reachable zones)
+
+Debug Tooling
+• Replay/event log export for bug reports
+• "Deterministic seed" reproduction
+Acceptance Criteria
+✓ Any reported bug must be reproducible from a seed + input log
+
+Page 10 of 10
+
+3D Bomberman-Inspired Web App — LLM Agent Instructions
+
+Section 13
+
+Production Plan and Delivery Milestones
+You must produce a milestone roadmap with dates relative to start (Week 1/2/3...). For each milestone,
+define: features delivered, risks, dependencies, and demo definition.
+
+Suggested Milestone Structure
+• Milestone 1: Playable core loop graybox (grid, bombs, explosions)
+• Milestone 2: Twist implemented + 3 maps + bots
+• Milestone 3: Art direction applied + VFX + UI polish
+• Milestone 4: Audio pass + tutorial + retention hooks
+• Milestone 5: Performance optimization + testing hardening + launch packaging
+Acceptance Criteria
+✓ Each milestone ends with a working build and a short changelog
+
+Section 14
+
+Final Package You Must Hand Back
+You must deliver:
+• 1. GDD (full)
+• 2. Technical design doc
+• 3. Style bible + asset list
+• 4. Asset pipeline documentation (how to regenerate/rebuild assets)
+• 5. Audio bible (SFX list + music plan + mixes)
+• 6. 10 map designs (blockouts + rules)
+• 7. Tutorial + onboarding script
+• 8. Test plan + automated test suite summary
+• 9. Launch checklist for web deployment (hosting, caching, performance, analytics)
+
+Section 15
+
+Quality Bar (Definition of “10/10”)
+Page 10 of 10
+
+3D Bomberman-Inspired Web App — LLM Agent Instructions
+
+Your output is acceptable only if:
+• ✓ Controls feel crisp and intentional (no jank, no sticky collisions)
+• ✓ Deaths feel fair and readable (no "I couldn't see that" moments)
+• ✓ Visuals are cohesive and premium (not placeholder-looking)
+• ✓ Audio dramatically improves feel and clarity
+• ✓ The twist creates mastery and replayability without breaking the classic loop
+• ✓ The pipeline can reliably generate/source assets and keep them consistent over time
+
+End of Document
+
+Page 10 of 10
+
+

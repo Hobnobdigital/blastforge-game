@@ -1,0 +1,9 @@
+# Movement Sounds Directory
+Place character movement sound effects here.
+
+## Expected Files:
+- footstep_01.ogg through footstep_06.ogg - Default footsteps (6 variations)
+- footstep_grass_01.ogg - Grass footsteps (optional)
+- footstep_metal_01.ogg - Metal footsteps (optional)
+- player_death.ogg - Player death/elimination sound
+- player_respawn.ogg - Player respawn sound (optional)

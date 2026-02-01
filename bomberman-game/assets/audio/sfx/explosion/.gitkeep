@@ -1,0 +1,9 @@
+# Explosion Sounds Directory
+Place explosion sound effects here.
+
+## Expected Files:
+- explosion_01.ogg - Primary explosion (variation 1)
+- explosion_02.ogg - Primary explosion (variation 2)
+- explosion_03.ogg - Primary explosion (variation 3)
+- explosion_chain_01.ogg - Chain reaction explosion
+- explosion_distant_01.ogg - Distant/muffled explosion

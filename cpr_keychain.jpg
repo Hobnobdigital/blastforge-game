@@ -1,0 +1,93 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+	<head>
+		<title data-language="en">The page you were looking for doesn't exist (404)</title>
+		<title data-language="es" style="display: none;">La página que buscabas no existe (404)</title>
+
+    <link href="https://fonts.googleapis.com/css?family=Merriweather+Sans:400,300,700,800" rel="stylesheet" />
+		<link href="https://code.jquery.com/ui/1.8.15/themes/smoothness/jquery-ui.css" rel="stylesheet" type="text/css" />
+		<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+		<link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap-theme.min.css" type="text/css" />
+    <link href="/stylesheets/error.css" rel="stylesheet" type="text/css" />
+
+		<script src="https://code.jquery.com/jquery-1.7.2.min.js" type="text/javascript"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js" type="text/javascript"></script>
+		<script src="/javascripts/respond.min.js" type="text/javascript"></script>
+		<script src="/javascripts/error.js" type="text/javascript"></script>
+	</head>
+
+	<body>
+		<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+			<div class="container">
+				<div class="navbar-header" style="min-width: 54px !important;">
+					<ul class="nav nav-pills">
+						<li id="logo_on_nav">
+							<a href="/">
+								<img src="/images/banner-logo-us-white.png" width="160" data-country="us" />
+								<img src="/images/banner-logo-uk-white.png" width="160" data-country="uk" style="display: none;" />
+							</a>
+						</li>
+						<li class='pull-right back-arrow'>
+              <a href="javascript: history.go(-1)">
+                <span class="glyphicon glyphicon-arrow-left"></span>
+                <span data-language="en">Back</span>
+                <span data-language="es" style="display: none;">Atrás</span>
+              </a>
+            </li>
+					</ul>
+			  </div>
+			</div>
+		</nav>
+    
+    <div id="stripe_hero">
+      <div class='main-image banner-image-other banner-image-non-course' style="background-image: url(/images/random/ostrich.jpg);">
+      	<div class="hero-content">
+          <h1 id="other-image-heading">
+            <span data-language="en">404 - Page Not Found</span>
+            <span data-language="es">404 - Página no encontrada</span>
+          </h1>
+      	</div>
+      </div>
+    </div>
+		
+		<div id="stripe_body">
+			<div class="container">
+				<div class="col-xs-12" style="min-height: 350px; padding: 25px;">
+					
+          <div class="row" style="margin-top: 40px;">
+						<div class="col-xs-12">
+              <div style="text-align: center; font-size: 1.3em; margin-top: 1em;" data-language="en">
+                <h2>Are you looking for <span class="blue_em">training</span>?</h2>
+                <p>Then you're in the right place.<br/>Just not the right page.</p>
+
+                <a href="/" class="btn btn-danger btn-lg">Try Our Home Page</a>
+                
+                <p class="contact_with_problems">
+                  If you continue to have problems,<br />
+                  <a href="/contact">contact us</a>
+                  by phone, email, or live chat.
+                </p>
+              </div>
+              <div style="text-align: center; font-size: 1.3em; margin-top: 4em;" data-language="es" style="display: none;">
+                <h2>¿Estás buscando <span class="blue_em">entrenamiento</span>?</h2>
+                <p>Estás en el lugar correcto.<br/>Pero no es la página correcta.</p>
+
+                <a href="/" class="btn btn-danger btn-lg">Pruebe el página de inicio</a>
+                
+                <p class="contact_with_problems">
+                  Si esto no soluciona tu problema,<br />
+                  <a href="/contact">contáctanos</a>
+                  por teléfono, correo electrónico, o chat.
+                </p>
+              </div>
+						</div>
+					</div>
+          
+				</div>
+			</div>
+		</div>
+
+	</body>
+</html>

@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lululemon Men's Shopping Guide - January 2026</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .product-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .product-card.featured {
+            border-left-color: #10b981;
+            background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+        }
+        
+        .product-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .product-title {
+            font-size: 1.8em;
+            color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.7em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .badge.sale {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .badge.available {
+            background: #10b981;
+            color: white;
+        }
+        
+        .badge.recommended {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .price-box {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .price-original {
+            text-decoration: line-through;
+            color: #999;
+            font-size: 0.9em;
+        }
+        
+        .price-sale {
+            font-size: 2em;
+            color: #ef4444;
+            font-weight: bold;
+        }
+        
+        .savings {
+            color: #10b981;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .features {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .features ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .features li {
+            padding: 8px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+        
+        .features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #10b981;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .recommendation {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .recommendation strong {
+            color: #92400e;
+        }
+        
+        .rating {
+            font-size: 1.5em;
+            color: #f59e0b;
+            margin: 10px 0;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+        
+        .comparison-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .comparison-table tr:hover {
+            background: #f3f4f6;
+        }
+        
+        .action-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 40px;
+        }
+        
+        .action-box h2 {
+            margin-bottom: 15px;
+        }
+        
+        .action-list {
+            text-align: left;
+            display: inline-block;
+            margin: 20px 0;
+        }
+        
+        .action-list li {
+            padding: 10px 0;
+            font-size: 1.1em;
+        }
+        
+        .total-box {
+            background: rgba(255,255,255,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .total-box h3 {
+            margin-bottom: 10px;
+        }
+        
+        .emoji {
+            font-size: 1.2em;
+        }
+        
+        .final-verdict {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 15px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .final-verdict h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+        
+        .medal {
+            font-size: 2em;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .product-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .price-box {
+                margin-top: 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏃‍♂️ Lululemon Men's Shopping Guide</h1>
+            <p>Your Complete Findings & Recommendations - January 2026</p>
+        </div>
+        
+        <div class="content">
+            
+            <!-- CITY SWEAT CREW -->
+            <div class="product-card featured">
+                <div class="product-header">
+                    <div class="product-title">
+                        1️⃣ City Sweat Crew Neck
+                        <span class="badge sale">50% OFF SALE</span>
+                    </div>
+                    <div class="price-box">
+                        <div class="price-original">Regular $118</div>
+                        <div class="price-sale">$59</div>
+                        <div class="savings">Save $59!</div>
+                    </div>
+                </div>
+                
+                <p><strong>Location:</strong> "We Made Too Much" Section</p>
+                
+                <div class="features">
+                    <h3>Product Details:</h3>
+                    <ul>
+                        <li>Soft, breathable stretch French terry fabric</li>
+                        <li>Classic crewneck design - timeless style</li>
+                        <li>Perfect for casual wear and light activity</li>
+                        <li>Multiple colors available (stock varies)</li>
+                        <li>Size Large fits chest 38-40"</li>
+                        <li>Moisture-wicking properties</li>
+                    </ul>
+                </div>
+                
+                <div class="recommendation">
+                    <strong>✨ MY RECOMMENDATION:</strong> This is an EXCELLENT deal! The City Sweat Crew is one of lululemon's most popular men's sweatshirts, and at 50% off, it's a steal. The French terry fabric is incredibly comfortable and breathable. <strong>BUY NOW</strong> before your size sells out - "We Made Too Much" items go fast!
+                </div>
+                
+                <div class="rating">
+                    ⭐⭐⭐⭐⭐ Must Buy!
+                </div>
+            </div>
+            
+            <!-- BALL CAP -->
+            <div class="product-card">
+                <div class="product-header">
+                    <div class="product-title">
+                        2️⃣ Classic Ball Cap (Bone/White)
+                        <span class="badge available">IN STOCK</span>
+                    </div>
+                    <div class="price-box">
+                        <div class="price-sale" style="color: #667eea;">$38</div>
+                    </div>
+                </div>
+                
+                <p><strong>Colors Available:</strong> Bone and White ✅</p>
+                
+                <div class="features">
+                    <h3>Cap Features:</h3>
+                    <ul>
+                        <li>Premium cotton twill fabric - soft and naturally breathable</li>
+                        <li>Interior mesh sweatband (moisture-wicking)</li>
+                        <li>Adjustable fit for perfect comfort</li>
+                        <li>Lightweight construction</li>
+                        <li>Classic timeless design</li>
+                        <li>Pairs with any outfit</li>
+                    </ul>
+                    
+                    <h4 style="margin-top: 15px;">Also Available:</h4>
+                    <ul>
+                        <li>Classic Ball Cap Wordmark - $38</li>
+                        <li>Structured Ball Cap - $38</li>
+                    </ul>
+                </div>
+                
+                <div class="recommendation">
+                    <strong>✨ MY RECOMMENDATION:</strong> The Classic Ball Cap in bone is a versatile accessory that pairs with everything in your wardrobe. The cotton twill is comfortable for all-day wear, and the mesh sweatband keeps you dry during activities. At $38, it's a <strong>great value</strong> and a perfect finishing touch to your athletic casual look.
+                </div>
+                
+                <div class="rating">
+                    ⭐⭐⭐⭐⭐ Great Buy!
+                </div>
+            </div>
+            
+            <!-- CREW NECK SWEATSHIRTS -->
+            <div class="product-card">
+                <div class="product-header">
+                    <div class="product-title">
+                        3️⃣ Crew Neck Sweatshirts (Size Large)
+                        <span class="badge recommended">TOP PICKS</span>
+                    </div>
+                </div>
+                
+                <h2 style="margin: 20px 0;">My Top 3 Recommendations:</h2>
+                
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Best For</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="medal">🏆</span> #1</td>
+                            <td><strong>Steady State Crew</strong></td>
+                            <td>$69-89 <span style="color: #999; text-decoration: line-through;">($118)</span></td>
+                            <td>Best overall value & comfort</td>
+                        </tr>
+                        <tr>
+                            <td><span class="medal">🥈</span> #2</td>
+                            <td><strong>Smooth Spacer Classic-Fit Crew</strong></td>
+                            <td>$79 <span style="color: #999; text-decoration: line-through;">($128)</span></td>
+                            <td>Polished, fitted look</td>
+                        </tr>
+                        <tr>
+                            <td><span class="medal">🥉</span> #3</td>
+                            <td><strong>Textured Knit Crewneck</strong></td>
+                            <td>$89 <span style="color: #999; text-decoration: line-through;">($128)</span></td>
+                            <td>Elevated styling</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <!-- STEADY STATE DETAILS -->
+                <div style="background: #f0fdf4; padding: 25px; border-radius: 10px; margin: 20px 0; border: 2px solid #10b981;">
+                    <h3 style="color: #047857; margin-bottom: 15px;">🏆 #1 BEST CHOICE: Steady State Crew</h3>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+                        <div>
+                            <h4>Why This is Perfect:</h4>
+                            <ul style="list-style: none; padding: 0;">
+                                <li style="padding: 5px 0;">✓ Relaxed fit with extra chest/waist room</li>
+                                <li style="padding: 5px 0;">✓ 70% cotton / 30% recycled polyester</li>
+                                <li style="padding: 5px 0;">✓ Breathable yet warm</li>
+                                <li style="padding: 5px 0;">✓ Holds shape after washing</li>
+                                <li style="padding: 5px 0;">✓ Perfect for layering</li>
+                                <li style="padding: 5px 0;">✓ Sustainable materials</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4>Ideal For:</h4>
+                            <ul style="list-style: none; padding: 0;">
+                                <li style="padding: 5px 0;">🏠 Everyday wear & lounging</li>
+                                <li style="padding: 5px 0;">🚗 Commuting</li>
+                                <li style="padding: 5px 0;">☕ Coffee runs</li>
+                                <li style="padding: 5px 0;">🏋️ Light workouts</li>
+                                <li style="padding: 5px 0;">🛋️ Casual hangouts</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <p style="background: white; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                        <strong>Size Large fit:</strong> Chest 38-40" - The relaxed cut won't feel restrictive and leaves room for layering without looking baggy.
+                    </p>
+                </div>
+                
+                <div class="recommendation">
+                    <strong>✨ MY RECOMMENDATION:</strong> The Steady State Crew offers the best combination of comfort, quality, and value. The fabric blend is perfect - soft enough for all-day wear but durable enough to last years. Get this in a neutral color (grey, navy, or black) to maximize versatility. <strong>Excellent second purchase</strong> if you're getting the City Sweat Crew.
+                </div>
+            </div>
+            
+            <!-- SHOPPING STRATEGY -->
+            <div class="action-box">
+                <h2>🎯 Your Shopping Strategy</h2>
+                
+                <div class="action-list">
+                    <h3>Priority Order:</h3>
+                    <ol style="font-size: 1.1em;">
+                        <li><strong>Act FAST</strong> on City Sweat Crew ($59) - "We Made Too Much" items sell out quickly in popular sizes</li>
+                        <li>Grab the Steady State Crew for a second crew neck option ($69-89)</li>
+                        <li>Pick up the Classic Ball Cap in Bone ($38) - Always available but completes the look</li>
+                    </ol>
+                </div>
+                
+                <div class="total-box">
+                    <h3>📊 Total Investment</h3>
+                    <p style="font-size: 1.3em; margin: 10px 0;"><strong>$166-178</strong></p>
+                    <p style="font-size: 1.1em; color: #d4fc79;"><strong>Total Savings: $135+</strong> (if buying all sale items)</p>
+                </div>
+                
+                <div style="margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 10px;">
+                    <h3 style="margin-bottom: 15px;">💡 Pro Tips:</h3>
+                    <ul style="text-align: left; display: inline-block;">
+                        <li>Size Large fits chest 38-40 inches</li>
+                        <li>"We Made Too Much" sales are final (no returns/exchanges)</li>
+                        <li>Stock varies - shop online for best selection</li>
+                        <li>Sale items typically sell out within 1-2 weeks</li>
+                        <li>Get complementary colors to maximize outfit options</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- STYLE GUIDE -->
+            <div style="background: #fef3c7; padding: 30px; border-radius: 15px; margin: 30px 0;">
+                <h2 style="color: #92400e; text-align: center; margin-bottom: 20px;">🎨 Style Benefits</h2>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div style="background: white; padding: 20px; border-radius: 10px;">
+                        <h3 style="color: #92400e;">Perfect Pairings:</h3>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 8px 0;">👕 City Sweat Crew (Black/Navy) + Bone Cap = Classic look</li>
+                            <li style="padding: 8px 0;">👕 Steady State Crew (Grey) - Pairs with everything</li>
+                            <li style="padding: 8px 0;">🧥 Both crew necks layer perfectly under jackets</li>
+                            <li style="padding: 8px 0;">💪 Athletic styling works for gym → street</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: white; padding: 20px; border-radius: 10px;">
+                        <h3 style="color: #92400e;">Color Strategy:</h3>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="padding: 8px 0;">🖤 City Sweat: Neutral (black, grey, navy)</li>
+                            <li style="padding: 8px 0;">🎨 Steady State: Different color for variety</li>
+                            <li style="padding: 8px 0;">🧢 Bone cap: Works with all colors</li>
+                            <li style="padding: 8px 0;">✨ Mix & match for maximum versatility</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- FINAL VERDICT -->
+            <div class="final-verdict">
+                <h2>✅ FINAL VERDICT</h2>
+                <div class="rating" style="color: #fde68a; font-size: 2em; margin: 20px 0;">
+                    ⭐⭐⭐⭐⭐
+                </div>
+                <p style="font-size: 1.2em; line-height: 1.8; max-width: 800px; margin: 0 auto;">
+                    This is an <strong>exceptional time</strong> to shop lululemon men's. The City Sweat Crew at 50% off is probably the <strong>best deal you'll find all year</strong> on their signature sweatshirts. Combined with the Steady State Crew (also on sale) and the Classic Ball Cap, you're getting premium athletic casual wear at a fraction of regular price.
+                </p>
+                
+                <div style="background: rgba(255,255,255,0.2); padding: 25px; border-radius: 10px; margin-top: 30px;">
+                    <h3 style="margin-bottom: 15px; font-size: 1.5em;">🎯 Bottom Line</h3>
+                    <p style="font-size: 1.1em;">
+                        <strong>Buy the City Sweat Crew immediately</strong> in your preferred color(s) while sizes last. Add the Steady State for variety and the ball cap to complete the look. You'll have versatile, high-quality pieces that work for multiple settings and will last for years.
+                    </p>
+                </div>
+                
+                <div style="margin-top: 30px; font-size: 1.1em;">
+                    <p><strong>🔥 DON'T WAIT - ACT NOW!</strong></p>
+                    <p style="margin-top: 10px; opacity: 0.9;">These deals won't last, and size Large is the most popular size.</p>
+                </div>
+            </div>
+            
+            <div style="text-align: center; padding: 30px; color: #6b7280;">
+                <p><em>Note: Prices and availability current as of January 2026. Stock may vary by location and time.</em></p>
+            </div>
+            
+        </div>
+    </div>
+</body>
+</html>

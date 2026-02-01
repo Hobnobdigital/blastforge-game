@@ -1,0 +1,9 @@
+# Ignore all files in temp directory
+*
+!.gitignore
+
+# Temp directory is for:
+# - Original source files (WAV, FLAC)
+# - Files before conversion to OGG
+# - Work-in-progress audio
+# - AI generation downloads

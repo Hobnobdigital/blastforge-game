@@ -1,0 +1,15 @@
+# UI Sounds Directory
+Place user interface sound effects here.
+
+## Expected Files:
+- ui_click.ogg - Button click/select
+- ui_hover.ogg - Button hover
+- ui_back.ogg - Back/cancel action
+- ui_select.ogg - Menu selection
+- ui_notification.ogg - Alert/notification
+- ui_warning.ogg - Warning sound
+- countdown_3.ogg - "3" countdown
+- countdown_2.ogg - "2" countdown
+- countdown_1.ogg - "1" countdown
+- countdown_go.ogg - "GO!" sound
+- timer_warning.ogg - Low time warning

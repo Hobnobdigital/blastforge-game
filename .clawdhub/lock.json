@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "skills": {
+    "gamma": {
+      "version": "1.0.0",
+      "installedAt": 1769564164365
+    },
+    "email": {
+      "version": "1.1.0",
+      "installedAt": 1769576572238
+    },
+    "resend": {
+      "version": "0.1.0",
+      "installedAt": 1769576732492
+    },
+    "agentmail": {
+      "version": "1.1.1",
+      "installedAt": 1769576791203
+    },
+    "frontend-design": {
+      "version": "1.0.0",
+      "installedAt": 1769760388485
+    },
+    "conventional-commits": {
+      "version": "1.0.1",
+      "installedAt": 1769760390029
+    },
+    "ui-audit": {
+      "version": "1.0.1",
+      "installedAt": 1769760392386
+    },
+    "github": {
+      "version": "1.0.0",
+      "installedAt": 1769760394618
+    }
+  }
+}

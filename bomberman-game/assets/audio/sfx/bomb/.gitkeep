@@ -1,0 +1,9 @@
+# Bomb Sounds Directory
+Place bomb-related sound effects here.
+
+## Expected Files:
+- bomb_place_01.ogg - Bomb placement (variation 1)
+- bomb_place_02.ogg - Bomb placement (variation 2)
+- fuse_burn_slow.ogg - Fuse burning (early timer)
+- fuse_burn_medium.ogg - Fuse burning (mid timer)
+- fuse_burn_fast.ogg - Fuse burning (late timer, urgent)

@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Costco Grocery List - $120 Budget</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 0;
+            line-height: 1.5;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 40px rgba(0,0,0,0.3);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .header h1 {
+            font-size: 1.5em;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .budget-tracker {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .budget-bar {
+            background: rgba(255,255,255,0.3);
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 8px;
+        }
+        
+        .budget-fill {
+            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+            height: 100%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .budget-fill.warning {
+            background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+        }
+        
+        .budget-fill.over {
+            background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+        }
+        
+        .budget-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85em;
+        }
+        
+        .content {
+            padding: 0;
+        }
+        
+        .category {
+            margin-bottom: 5px;
+        }
+        
+        .category-header {
+            background: #f3f4f6;
+            padding: 12px 20px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: sticky;
+            top: 175px;
+            z-index: 50;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .category-icon {
+            font-size: 1.2em;
+        }
+        
+        .item {
+            display: flex;
+            align-items: center;
+            padding: 18px 20px;
+            border-bottom: 1px solid #f3f4f6;
+            background: white;
+            transition: background 0.2s ease;
+            min-height: 70px;
+        }
+        
+        .item:active {
+            background: #f9fafb;
+        }
+        
+        .item.checked {
+            background: #f0fdf4;
+            opacity: 0.7;
+        }
+        
+        .item.checked .item-name {
+            text-decoration: line-through;
+            color: #6b7280;
+        }
+        
+        .checkbox-wrapper {
+            width: 28px;
+            height: 28px;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .checkbox {
+            width: 28px;
+            height: 28px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        .checkbox.checked {
+            background: #10b981;
+            border-color: #10b981;
+        }
+        
+        .checkbox.checked::after {
+            content: "✓";
+            position: absolute;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .item-details {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .item-name {
+            font-size: 1em;
+            font-weight: 500;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+        
+        .item-description {
+            font-size: 0.85em;
+            color: #6b7280;
+            line-height: 1.3;
+        }
+        
+        .item-price {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #667eea;
+            margin-left: 15px;
+            flex-shrink: 0;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7em;
+            font-weight: 600;
+            margin-left: 6px;
+            text-transform: uppercase;
+        }
+        
+        .badge.healthy {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .badge.protein {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .badge.fave {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .summary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 25px 20px;
+            position: sticky;
+            bottom: 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+        }
+        
+        .summary-row:last-child {
+            margin-bottom: 0;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.3);
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+        
+        .note {
+            background: #fef3c7;
+            padding: 15px 20px;
+            margin: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #f59e0b;
+            font-size: 0.9em;
+            color: #92400e;
+        }
+        
+        .note strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        @media (max-width: 400px) {
+            .item {
+                padding: 15px;
+            }
+            
+            .item-name {
+                font-size: 0.95em;
+            }
+            
+            .item-price {
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛒 Costco Grocery List</h1>
+            <p>📍 Downtown Vancouver (605 Expo Blvd)</p>
+            
+            <div class="budget-tracker">
+                <div class="budget-bar">
+                    <div class="budget-fill" id="budgetFill">$0 / $120</div>
+                </div>
+                <div class="budget-info">
+                    <span id="remaining">Remaining: $120.00</span>
+                    <span id="itemCount">0 of 18 items</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="note">
+            <strong>💡 Shopping Tips:</strong>
+            • Tap items to check them off as you shop<br>
+            • Budget tracker updates automatically<br>
+            • All items chosen for quality + value<br>
+            • Mix of comfort foods & healthy options
+        </div>
+        
+        <div class="content">
+            <!-- PROTEINS -->
+            <div class="category">
+                <div class="category-header">
+                    <span class="category-icon">🍗</span>
+                    Proteins
+                </div>
+                
+                <div class="item" data-price="28.99">
+                    <div class="checkbox-wrapper">
+                        <div class="checkbox"></div>
+                    </div>
+                    <div class="item-details">
+                        <div class="item-name">
+                            Chicken Thighs (Family Pack)
+                            <span class="badge protein">Protein</span>
+                        </div>
+                        <div class="item-description">Juicy, versatile - perfect for grilling or baking</div>
+                    </div>
+                    <div class="item-price">$28.99</div>
+                </div>
+                
+                <div class="item" data-price="19.99">
+                    <div class="checkbox-wrapper">
+                        <div class="checkbox"></div>
+                    </div>
+                    <div class="item-details">
+                        <div class="item-name">
+                            Ground Beef (Lean)
+                            <span class="badge protein">Protein</span>
+                        </div>
+                        <div class="item-description">Great for burgers, tacos, pasta - super versatile</div>
+                    </div>
+                    <div class="item-price">$19.99</div>
+                </div>
+                
+                <div class="item" data-price="12.99">
+                    <div class="checkbox-wrapper">
+                        <div class="checkbox"></div>
+                    </div>
+                    <div class="item-details">
+                        <div class="item-name">
+                            Eggs (2 dozen)
+                            <span class="badge healthy">Healthy</span>
+                            <span class="badge fave">Essential</span>
+                        </div>
+                        <div class="item-description">Protein-packed breakfast staple</div>
+                    </div>
+                    <div class="item-price">$12.99</div>
+                </div>
+            </div>
+            
+            <!-- PRODUCE -->
+            <div class="category">
+                <div class="category-header">
+                    <span class="category-icon">🥗</span>
+                    Fresh Produce
+                </div>
+                
+                <div class="item" data-price="7.99">
+                    <div class="checkbox-wrapper">
+                        <div class="checkbox"></div>
+                    </div>
+                    <div class="item-details">
+                        <div class="item-name">
+                            Baby Spinach (Large Container)
+                            <span class="badge healthy">Healthy</span>
+                        </div>
+                        <div class="item-description">Easy to add to anything - smoothies, eggs, pasta</div>
+                    </div>
+                    <div class="item-price">$7.99</div>
+                </div>
+                
+                <div class="item" data-price="5.99">
+                    <div class="checkbox-wrapper">
+                        <div class="checkbox"></div>
+                    </div>
+                    <div class="item-details">
+                        <div class="item-name">
+                            Bananas (Large Bunch)
+                            <span class="badge healthy">Healthy</span>
+                        </div>
+                        <div class="item-description">Quick snack, smoothie ingredient, good energy</div>
+                    </div>
+                    <div class="item-price">$5.99</div>
+                </div>
+                
+                <div class="item" data-price="6.49">
+                    <div class="checkbox-wrapper">
+                        <div class="checkbox"></div>
+                    </div>
+                    <div class="item-details">
+                        <div class="item-name">
+                            Cherry Tomatoes
+                            <span class="badge healthy">Healthy</span>
+                        </div>
+                        <div class="item-description">Sweet, snackable, great in salads or pasta</div>
+                    </div>
+                    <div class="item-price">$6.49</div>
+                </div>
+            </div>
+            
+            <!-- PANTRY STAPLES -->
+            <div class="category">
+                <div class="category-header">
+                    <span class="category-icon">🍝</span>
+                    Pantry Staples
+                </div>
+                
+                <div class="item" data-price="4.99">
+                    <div class="checkbox-wrapper">
+                        <div class="checkbox"></div>
+                    </div>
+                    <div class="item-details">
+                        <div class="item-name">
+                            Pasta (Multi-Pack)
+                            <span class="badge fave">Easy Meal</span>
+                        </div>
+                        <div class="item-description">Quick, filling, pairs with anything</div>
+                    </div>
+                    <div class="item-price">$4.99</div>
+                </div>
+                
+                <div class="item" data-price="5.99">
+                    <div class="checkbox-wrapper">
+                        <div class="checkbox"></div>
+                    </div>
+                    <div class="item-details">
+                        <div class="item-name">
+                            Rice (Large Bag)
+                            <span class="badge fave">Essential</span>
+                        </div>
+                        <div class="item-description">Side dish staple, lasts forever</div>
+                    </div>
+                    <div class="item-price">$5.99</div>
+                </div>
+                
+                <div class="item" data-price="6.99">
+                    <div class="checkbox-wrapper">
+                        <div class="checkbox"></div>
+                    </div>
+                    <div class="item-details">
+                        <div class="item-name">
+                            Olive Oil
+                            <span class="badge healthy">Healthy</span>
+                        </div>
+                        <div class="item-description">Cooking essential, healthy fats</div>
+                    </div>
+                    <div class="item-price">$6.99</div>
+                </div>
+            </div>
+            
+            <!-- DAIRY -->
+            <div class="category">
+                <div class="category-header">
+                    <span class="category-icon">🧀</span>
+                    Dairy
+                </div>
+                
+                <div class="item" data-price="5.49">
+                    <div class="checkbox-wrapper">
+                        <div class="checkbox"></div>
+                    </div>
+                    <div class="item-details">
+                        <div class="item-name">
+                            Greek Yogurt (Large)
+                            <span class="badge healthy">Healthy</span>
+                            <span class="badge protein">Protein</span>
+                        </div>
+                        <div class="item-description">High protein breakfast or snack</div>
+                    </div>
+                    <div class="item-price">$5.49</div>
+                </div>
+                
+                <div class="item" data-price="6.99">
+                    <div class="checkbox-wrapper">
+                        <div class="checkbox"></div>
+                    </div>
+                    <div class="item-details">
+                        <div class="item-name">
+                            Cheese Block (Cheddar)
+                            <span class="badge fave">Tasty</span>
+                        </div>
+                        <div class="item-description">Great for snacking, sandwiches, cooking</div>
+                    </div>
+                    <div class="item-price">$6.99</div>
+                </div>
+            </div>
+            
+            <!-- SNACKS -->
+            <div class="category">
+                <div class="category-header">
+                    <span class="category-icon">🍿</span>
+                    Snacks & Treats
+                </div>
+                
+                <div class="item" data-price="9.99">
+                    <div class="checkbox-wrapper">
+                        <div class="checkbox"></div>
+                    </div>
+                    <div class="item-details">
+                        <div class="item-name">
+                            Mixed Nuts (Large Container)
+                            <span class="badge healthy">Healthy</span>
+                        </div>
+                        <div class="item-description">Protein-rich snack, satisfying & nutritious</div>
+                    </div>
+                    <div class="item-price">$9.99</div>
+                </div>
+                
+                <div class="item" data-price="7.49">
+                    <div class="checkbox-wrapper">
+                        <div class="checkbox"></div>
+                    </div>
+                    <div class="item-details">
+                        <div class="item-name">
+                            Granola Bars (Box)
+                            <span class="badge fave">Quick Snack</span>
+                        </div>
+                        <div class="item-description">Grab-and-go convenience</div>
+                    </div>
+                    <div class="item-price">$7.49</div>
+                </div>
+                
+                <div class="item" data-price="4.99">
+                    <div class="checkbox-wrapper">
+                        <div class="checkbox"></div>
+                    </div>
+                    <div class="item-details">
+                        <div class="item-name">
+                            Tortilla Chips
+                            <span class="badge fave">Tasty</span>
+                        </div>
+                        <div class="item-description">Perfect with guac or salsa</div>
+                    </div>
+                    <div class="item-price">$4.99</div>
+                </div>
+            </div>
+            
+            <!-- BEVERAGES -->
+            <div class="category">
+                <div class="category-header">
+                    <span class="category-icon">🥤</span>
+                    Beverages
+                </div>
+                
+                <div class="item" data-price="3.99">
+                    <div class="checkbox-wrapper">
+                        <div class="checkbox"></div>
+                    </div>
+                    <div class="item-details">
+                        <div class="item-name">
+                            Orange Juice (Large Carton)
+                            <span class="badge healthy">Healthy</span>
+                        </div>
+                        <div class="item-description">Vitamin C boost for breakfast</div>
+                    </div>
+                    <div class="item-price">$3.99</div>
+                </div>
+                
+                <div class="item" data-price="4.99">
+                    <div class="checkbox-wrapper">
+                        <div class="checkbox"></div>
+                    </div>
+                    <div class="item-details">
+                        <div class="item-name">
+                            Bottled Water (24-pack)
+                            <span class="badge healthy">Healthy</span>
+                        </div>
+                        <div class="item-description">Stay hydrated!</div>
+                    </div>
+                    <div class="item-price">$4.99</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="summary">
+            <div class="summary-row">
+                <span>Subtotal:</span>
+                <span id="subtotal">$0.00</span>
+            </div>
+            <div class="summary-row">
+                <span>Budget:</span>
+                <span>$120.00</span>
+            </div>
+            <div class="summary-row">
+                <span id="totalLabel">Total:</span>
+                <span id="total">$0.00</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Initialize
+        const items = document.querySelectorAll('.item');
+        const checkboxes = document.querySelectorAll('.checkbox');
+        const budgetFill = document.getElementById('budgetFill');
+        const remaining = document.getElementById('remaining');
+        const itemCount = document.getElementById('itemCount');
+        const subtotal = document.getElementById('subtotal');
+        const total = document.getElementById('total');
+        const totalLabel = document.getElementById('totalLabel');
+        
+        const BUDGET = 120.00;
+        let totalPrice = 0;
+        let checkedCount = 0;
+        const totalItems = items.length;
+        
+        // Calculate total price
+        items.forEach(item => {
+            totalPrice += parseFloat(item.dataset.price);
+        });
+        
+        // Update display
+        function updateBudget() {
+            let currentTotal = 0;
+            let checked = 0;
+            
+            items.forEach(item => {
+                if (item.classList.contains('checked')) {
+                    currentTotal += parseFloat(item.dataset.price);
+                    checked++;
+                }
+            });
+            
+            const percentage = (currentTotal / BUDGET) * 100;
+            const remainingAmount = BUDGET - currentTotal;
+            
+            // Update budget bar
+            budgetFill.style.width = Math.min(percentage, 100) + '%';
+            budgetFill.textContent = `$${currentTotal.toFixed(2)} / $${BUDGET.toFixed(2)}`;
+            
+            // Color coding
+            budgetFill.classList.remove('warning', 'over');
+            if (percentage > 100) {
+                budgetFill.classList.add('over');
+            } else if (percentage > 85) {
+                budgetFill.classList.add('warning');
+            }
+            
+            // Update info
+            remaining.textContent = remainingAmount >= 0 
+                ? `Remaining: $${remainingAmount.toFixed(2)}`
+                : `Over budget: $${Math.abs(remainingAmount).toFixed(2)}`;
+            remaining.style.color = remainingAmount >= 0 ? 'white' : '#fecaca';
+            
+            itemCount.textContent = `${checked} of ${totalItems} items`;
+            
+            // Update totals
+            subtotal.textContent = `$${currentTotal.toFixed(2)}`;
+            total.textContent = `$${currentTotal.toFixed(2)}`;
+            
+            if (remainingAmount < 0) {
+                totalLabel.textContent = '⚠️ Over Budget:';
+                total.style.color = '#fecaca';
+            } else {
+                totalLabel.textContent = 'Total:';
+                total.style.color = 'white';
+            }
+        }
+        
+        // Initial display
+        subtotal.textContent = `$${totalPrice.toFixed(2)}`;
+        total.textContent = `$0.00`;
+        remaining.textContent = `Remaining: $${BUDGET.toFixed(2)}`;
+        itemCount.textContent = `0 of ${totalItems} items`;
+        
+        // Add click handlers
+        items.forEach((item, index) => {
+            item.addEventListener('click', function() {
+                const checkbox = this.querySelector('.checkbox');
+                checkbox.classList.toggle('checked');
+                this.classList.toggle('checked');
+                updateBudget();
+            });
+        });
+        
+        // Prevent double-tap zoom on iOS
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(event) {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    </script>
+</body>
+</html>

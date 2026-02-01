@@ -1,0 +1,9 @@
+# Music Directory
+Place background music and jingles here.
+
+## Expected Files:
+- menu_theme.ogg - Main menu background music
+- gameplay_main.ogg - Primary gameplay music loop
+- gameplay_intense.ogg - Escalation music for final moments
+- victory_jingle.ogg - Victory sound (5-10 seconds)
+- defeat_sound.ogg - Defeat sound (3-5 seconds)

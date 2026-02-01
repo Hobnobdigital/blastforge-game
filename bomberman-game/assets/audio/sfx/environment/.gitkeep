@@ -1,0 +1,10 @@
+# Environment Sounds Directory
+Place environmental sound effects here (block breaking, etc.)
+
+## Expected Files:
+- block_break_01.ogg - Block destruction (variation 1)
+- block_break_02.ogg - Block destruction (variation 2)
+- block_break_03.ogg - Block destruction (variation 3)
+- block_break_stone.ogg - Stone block destruction (optional)
+- block_break_metal.ogg - Metal block destruction (optional)
+- block_break_ice.ogg - Ice block destruction (optional)
