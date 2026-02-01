@@ -8,7 +8,7 @@ import { settingsManager } from './SettingsManager';
 import { levelSystem } from './LevelSystem';
 import { MenuManager } from '@ui/MenuManager';
 import { InputManager } from '@input/InputManager';
-import { AudioEngine } from '@audio/AudioEngine';
+import { AudioManager, MusicTrack, AudioCategory } from '@audio/AudioManager';
 import { SceneManager } from '@rendering/SceneManager';
 import { HUD } from '@ui/HUD';
 import { GameLoop } from './GameLoop';
@@ -28,7 +28,8 @@ import {
   tickBombs, 
   primeBomb, 
   rushBomb, 
-  detonateBomb 
+  detonateBomb,
+  BombState 
 } from '@systems/BombSystem';
 import { 
   spawnExplosion, 
@@ -42,28 +43,29 @@ export class GameController {
   private state: ExtendedGameState;
   private input: InputManager;
   private scene: SceneManager;
-  private audio: AudioEngine;
+  private audio: AudioManager;
   private menuManager: MenuManager;
   private hud: HUD;
   private gameLoop: GameLoop;
   
   private sessionBombsPlaced = 0;
   private sessionPowerUpsCollected = 0;
-  private _sessionEnemiesDefeated = 0;
+  private sessionEnemiesDefeated = 0;
   private fpsEl: HTMLElement;
+  
+  // Track previous bomb states for fuse tick management
+  private previousBombs: Map<number, BombState> = new Map();
+  private fuseSoundsInitialized = false;
 
   constructor() {
     // Initialize core systems
     this.input = new InputManager();
     this.scene = new SceneManager();
-    this.audio = new AudioEngine();
+    this.audio = AudioManager.getInstance();
     this.hud = new HUD();
     
-    // Load settings into audio
-    const settings = settingsManager.getSettings();
-    this.audio.setMusicVolume(settings.musicVolume);
-    this.audio.setSfxVolume(settings.sfxVolume);
-    this.audio.setUiVolume(settings.uiVolume);
+    // Initialize audio after user interaction
+    this.initializeAudio();
     
     // Initialize extended game state
     this.state = this.createInitialExtendedState();
@@ -77,7 +79,7 @@ export class GameController {
     
     // Setup FPS counter
     this.fpsEl = document.getElementById('fps-counter')!;
-    this.fpsEl.style.display = settings.showFPS ? 'block' : 'none';
+    this.fpsEl.style.display = 'none'; // Will show based on settings
     
     // Setup pause callback
     this.input.setPauseCallback(() => this.togglePause());
@@ -90,6 +92,38 @@ export class GameController {
     
     // Show main menu
     this.menuManager.showScreen(MenuScreen.MAIN);
+  }
+  
+  /**
+   * Initialize audio system after user interaction
+   */
+  private initializeAudio(): void {
+    const initAudio = async () => {
+      await this.audio.initialize();
+      
+      // Load settings into audio
+      const settings = settingsManager.getSettings();
+      this.audio.setVolume(AudioCategory.MASTER, 1.0);
+      this.audio.setVolume(AudioCategory.MUSIC, settings.musicVolume);
+      this.audio.setVolume(AudioCategory.SFX, settings.sfxVolume);
+      this.audio.setVolume(AudioCategory.UI, settings.uiVolume);
+      
+      // Start menu music
+      this.audio.playMusic(MusicTrack.MENU);
+      
+      // Remove listeners after initialization
+      document.removeEventListener('click', initAudio);
+      document.removeEventListener('touchstart', initAudio);
+      document.removeEventListener('keydown', initAudio);
+      
+      this.fuseSoundsInitialized = true;
+      console.log('[GameController] Audio initialized');
+    };
+    
+    // Wait for user interaction to initialize audio (required for mobile)
+    document.addEventListener('click', initAudio, { once: true });
+    document.addEventListener('touchstart', initAudio, { once: true });
+    document.addEventListener('keydown', initAudio, { once: true });
   }
 
   private createInitialExtendedState(): ExtendedGameState {
@@ -118,6 +152,9 @@ export class GameController {
   private startGame(levelId: number): void {
     settingsManager.incrementGamesStarted();
     
+    // Play UI click
+    this.audio.playUIClick();
+    
     // Set the level
     levelSystem.setLevel(levelId - 1);
     this.state.currentLevel = levelId;
@@ -129,10 +166,13 @@ export class GameController {
     // Reset session stats
     this.sessionBombsPlaced = 0;
     this.sessionPowerUpsCollected = 0;
-    this._sessionEnemiesDefeated = 0;
+    this.sessionEnemiesDefeated = 0;
     this.state.levelStartTime = Date.now();
     this.state.totalPauseTime = 0;
     this.state.pausedAt = null;
+    
+    // Clear previous bomb tracking
+    this.previousBombs.clear();
     
     // Apply settings
     this.applySettings();
@@ -141,14 +181,17 @@ export class GameController {
     this.state.phase = GamePhase.PLAYING;
     this.menuManager.hide();
     
-    // Resume audio context if needed
-    this.audio.setMusicVolume(this.state.settings.musicVolume);
+    // Switch to gameplay music
+    this.audio.playMusic(MusicTrack.GAMEPLAY);
     
     console.log(`Starting Level ${levelId}: ${levelConfig.name}`);
   }
 
   private resumeGame(): void {
     if (this.state.phase === GamePhase.PAUSED) {
+      // Play UI click
+      this.audio.playUIClick();
+      
       // Add pause duration to total
       if (this.state.pausedAt) {
         this.state.totalPauseTime += Date.now() - this.state.pausedAt;
@@ -156,16 +199,30 @@ export class GameController {
       this.state.pausedAt = null;
       this.state.phase = GamePhase.PLAYING;
       this.menuManager.hide();
+      
+      // Resume music
+      if (!this.audio.isMusicPlaying()) {
+        this.audio.playMusic(MusicTrack.GAMEPLAY);
+      }
     }
   }
 
   private quitToMenu(): void {
+    // Play UI click
+    this.audio.playUIClick();
+    
     // Save play time
     const sessionTime = Math.floor((Date.now() - this.state.session.startTime) / 1000);
     settingsManager.addPlayTime(sessionTime);
     
+    // Stop all game sounds
+    this.audio.stopAllFuseTicks();
+    
     this.state.phase = GamePhase.MENU;
     this.menuManager.showScreen(MenuScreen.MAIN);
+    
+    // Switch to menu music
+    this.audio.playMusic(MusicTrack.MENU);
   }
 
   private togglePause(): void {
@@ -173,8 +230,14 @@ export class GameController {
       this.state.phase = GamePhase.PAUSED;
       this.state.pausedAt = Date.now();
       this.menuManager.showPauseMenu();
+      
+      // Pause music
+      this.audio.pause();
     } else if (this.state.phase === GamePhase.PAUSED) {
       this.resumeGame();
+      
+      // Resume music
+      this.audio.resume();
     }
   }
 
@@ -208,48 +271,80 @@ export class GameController {
   private updatePlaying(dt: number, input: ExtendedInputState): void {
     const player = this.state.base.players[0];
     
+    // Update listener position for spatial audio
+    if (player) {
+      this.audio.setListenerPosition(player.worldPos.x, player.worldPos.y, 0);
+    }
+    
     if (player?.alive) {
       // Movement
       if (input.moveDir !== Direction.None) {
         player.moveDir = input.moveDir;
         movePlayer(this.state.base, 0, dt);
+        
+        // Play footstep occasionally
+        if (tick % 15 === 0) {
+          this.audio.playFootstep({ x: player.worldPos.x, y: player.worldPos.y });
+        }
       }
 
       // Bomb placement
       if (input.placeBomb) {
         if (placeBomb(this.state.base, 0)) {
-          this.audio.playBombPlace();
+          const newBomb = this.state.base.bombs[this.state.base.bombs.length - 1];
+          this.audio.playBombPlace({ x: player.worldPos.x, y: player.worldPos.y });
+          this.audio.startFuseTick(newBomb.id, false, false);
           this.sessionBombsPlaced++;
           settingsManager.incrementBombsPlaced();
         }
       }
 
       // Fuse actions
-      if (input.fuseAction === 'prime') primeBomb(this.state.base, 0);
-      else if (input.fuseAction === 'rush') rushBomb(this.state.base, 0);
-      else if (input.fuseAction === 'detonate') {
+      if (input.fuseAction === 'prime') {
+        if (primeBomb(this.state.base, 0)) {
+          this.audio.playFusePrime();
+        }
+      } else if (input.fuseAction === 'rush') {
+        if (rushBomb(this.state.base, 0)) {
+          this.audio.playFuseRush();
+        }
+      } else if (input.fuseAction === 'detonate') {
         const pos = detonateBomb(this.state.base, 0);
         if (pos) {
+          // Stop fuse sound for detonated bomb
+          const bomb = this.state.base.bombs.find(b => 
+            b.gridPos.col === pos.col && b.gridPos.row === pos.row
+          );
+          if (bomb) {
+            this.audio.stopFuseTick(bomb.id);
+          }
+          
+          this.audio.playFuseDetonate();
           spawnExplosion(this.state.base, pos, player.bombRange);
-          this.audio.playExplosion();
+          this.audio.playExplosion(player.bombRange, { x: pos.col, y: pos.row });
         }
       }
     }
 
+    // Update fuse ticking sounds
+    this.updateFuseSounds();
+
     // Tick bombs
     const detonated = tickBombs(this.state.base, dt);
     for (const pos of detonated) {
-      spawnExplosion(this.state.base, pos, this.state.base.players[0]?.bombRange ?? 2);
-      this.audio.playExplosion();
+      const range = this.state.base.players[0]?.bombRange ?? 2;
+      spawnExplosion(this.state.base, pos, range);
+      this.audio.playExplosion(range, { x: pos.col, y: pos.row });
     }
 
     // Tick explosions
     tickExplosions(this.state.base, dt);
 
     // Collect power-ups
-    const powerUpCollected = collectPowerUps(this.state.base);
-    if (powerUpCollected) {
-      this.audio.playPowerUp();
+    const powerUpsBefore = this.state.base.powerUps.length;
+    collectPowerUps(this.state.base);
+    if (this.state.base.powerUps.length < powerUpsBefore) {
+      this.audio.playPowerUpCollect();
       this.sessionPowerUpsCollected++;
       settingsManager.incrementPowerUpsCollected();
       settingsManager.vibrate(50);
@@ -257,6 +352,34 @@ export class GameController {
 
     // Check win/lose conditions
     this.checkGameEndConditions();
+    
+    // Update previous bomb states
+    this.previousBombs.clear();
+    for (const bomb of this.state.base.bombs) {
+      this.previousBombs.set(bomb.id, { ...bomb });
+    }
+  }
+  
+  /**
+   * Update fuse ticking sounds for all active bombs
+   */
+  private updateFuseSounds(): void {
+    for (const bomb of this.state.base.bombs) {
+      this.audio.updateFuseTick(
+        bomb.id,
+        bomb.fuseRemaining,
+        bomb.primed,
+        bomb.rushed
+      );
+    }
+    
+    // Stop fuse sounds for detonated bombs
+    for (const [bombId, prevBomb] of this.previousBombs) {
+      const stillExists = this.state.base.bombs.find(b => b.id === bombId);
+      if (!stillExists) {
+        this.audio.stopFuseTick(bombId);
+      }
+    }
   }
 
   private checkGameEndConditions(): void {
@@ -268,28 +391,14 @@ export class GameController {
       return;
     }
     
-    // Check victory - all enemies defeated or all soft blocks destroyed
+    // Check victory - all enemies defeated
     const enemies = (this.state.base as any).enemies || [];
     const aliveEnemies = enemies.filter((e: any) => e.alive);
     
-    // Victory condition: No enemies left (or all destroyed soft blocks in single player)
     if (aliveEnemies.length === 0 && enemies.length > 0) {
       this.handleVictory();
       return;
     }
-    
-    // Alternative victory: All soft blocks destroyed
-    let softBlocksRemaining = 0;
-    for (let row = 0; row < GRID_SIZE; row++) {
-      for (let col = 0; col < GRID_SIZE; col++) {
-        if (this.state.base.grid[row][col] === TileType.SoftBlock) {
-          softBlocksRemaining++;
-        }
-      }
-    }
-    
-    // Victory if no enemies and few soft blocks remain (optional condition)
-    // For now, let's use a simpler condition: clear all enemies or survive
   }
 
   private handleVictory(): void {
@@ -299,6 +408,10 @@ export class GameController {
     
     // Update stats
     settingsManager.recordWin(this.state.currentLevel, levelTime);
+    
+    // Play victory sounds
+    this.audio.stopAllFuseTicks();
+    this.audio.playVictory();
     
     // Vibrate for feedback
     settingsManager.vibrate([100, 50, 100]);
@@ -318,6 +431,11 @@ export class GameController {
     
     // Update stats
     settingsManager.recordLoss();
+    
+    // Play defeat sounds
+    this.audio.stopAllFuseTicks();
+    this.audio.playPlayerDeath();
+    setTimeout(() => this.audio.playDefeat(), 500);
     
     // Vibrate for feedback
     settingsManager.vibrate([200, 100, 200]);
@@ -341,6 +459,9 @@ export class GameController {
     // Update FPS display
     if (this.state.settings.showFPS) {
       this.fpsEl.textContent = `${this.gameLoop.fps} FPS`;
+      this.fpsEl.style.display = 'block';
+    } else {
+      this.fpsEl.style.display = 'none';
     }
   }
 
@@ -348,9 +469,9 @@ export class GameController {
     const settings = settingsManager.getSettings();
     
     // Apply audio settings
-    this.audio.setMusicVolume(settings.musicVolume);
-    this.audio.setSfxVolume(settings.sfxVolume);
-    this.audio.setUiVolume(settings.uiVolume);
+    this.audio.setVolume(AudioCategory.MUSIC, settings.musicVolume);
+    this.audio.setVolume(AudioCategory.SFX, settings.sfxVolume);
+    this.audio.setVolume(AudioCategory.UI, settings.uiVolume);
     
     // Apply display settings
     this.fpsEl.style.display = settings.showFPS ? 'block' : 'none';
@@ -370,5 +491,12 @@ export class GameController {
 
   getPhase(): GamePhase {
     return this.state.phase;
+  }
+  
+  /**
+   * Get audio manager for external control
+   */
+  getAudio(): AudioManager {
+    return this.audio;
   }
 }
