@@ -3,33 +3,41 @@ import { GameState, GridPos, TileType, GRID_SIZE, PowerUpType } from '@core/type
 const EXPLOSION_DURATION = 0.5; // seconds
 
 export function spawnExplosion(state: GameState, origin: GridPos, range: number): void {
-  const affected = getExplosionTiles(state, origin, range);
+  // Use iterative queue-based approach to prevent stack overflow with large chain reactions
+  const explosionQueue: Array<{ pos: GridPos; range: number }> = [{ pos: origin, range }];
+  
+  while (explosionQueue.length > 0) {
+    const current = explosionQueue.shift()!;
+    const affected = getExplosionTiles(state, current.pos, current.range);
 
-  for (const pos of affected) {
-    // Destroy soft blocks
-    if (state.grid[pos.row][pos.col] === TileType.SoftBlock) {
-      state.grid[pos.row][pos.col] = TileType.Floor;
-      maybeSpawnPowerUp(state, pos);
-    }
-
-    state.explosions.push({ gridPos: pos, remaining: EXPLOSION_DURATION });
-
-    // Kill players standing here
-    for (const player of state.players) {
-      if (player.alive && player.gridPos.col === pos.col && player.gridPos.row === pos.row) {
-        player.alive = false;
+    for (const pos of affected) {
+      // Destroy soft blocks
+      if (state.grid[pos.row][pos.col] === TileType.SoftBlock) {
+        state.grid[pos.row][pos.col] = TileType.Floor;
+        maybeSpawnPowerUp(state, pos);
       }
-    }
 
-    // Chain-detonate bombs
-    for (let i = state.bombs.length - 1; i >= 0; i--) {
-      const b = state.bombs[i];
-      if (b.gridPos.col === pos.col && b.gridPos.row === pos.row) {
-        state.bombs.splice(i, 1);
-        const owner = state.players[b.ownerId];
-        if (owner) owner.activeBombs--;
-        // Recursively explode (next tick would be more correct, but this is simpler for now)
-        spawnExplosion(state, b.gridPos, b.range);
+      state.explosions.push({ gridPos: pos, remaining: EXPLOSION_DURATION });
+
+      // Kill players standing here
+      for (const player of state.players) {
+        if (player.alive && player.gridPos.col === pos.col && player.gridPos.row === pos.row) {
+          player.alive = false;
+        }
+      }
+
+      // Chain-detonate bombs
+      for (let i = state.bombs.length - 1; i >= 0; i--) {
+        const b = state.bombs[i];
+        if (b.gridPos.col === pos.col && b.gridPos.row === pos.row) {
+          state.bombs.splice(i, 1);
+          const owner = state.players[b.ownerId];
+          if (owner && owner.activeBombs > 0) {
+            owner.activeBombs--;
+          }
+          // Queue for explosion instead of recursing
+          explosionQueue.push({ pos: b.gridPos, range: b.range });
+        }
       }
     }
   }

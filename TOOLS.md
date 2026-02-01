@@ -2,6 +2,13 @@
 
 Skills define *how* tools work. This file is for *your* specifics — the stuff that's unique to your setup.
 
+## Image Generation (OpenAI)
+
+**MANDATORY SETTINGS:**
+- **Model:** `gpt-image-1.5` ONLY (never use DALL-E)
+- **Quality:** `high`
+- **Size:** `1536x1024` (landscape - highest quality)
+
 ## What Goes Here
 
 Things like:

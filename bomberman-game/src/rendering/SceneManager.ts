@@ -45,8 +45,13 @@ export class SceneManager {
     this.camera.position.set(center, 18, center + 12);
     this.camera.lookAt(center, 0, center);
 
-    // Renderer
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    // Renderer — graceful fallback when WebGL is unavailable
+    try {
+      this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    } catch (error) {
+      SceneManager.showWebGLError();
+      throw new Error('WebGL initialization failed: ' + (error instanceof Error ? error.message : String(error)));
+    }
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMap.enabled = true;
@@ -214,5 +219,34 @@ export class SceneManager {
 
   render(): void {
     this.renderer.render(this.scene, this.camera);
+  }
+
+  private static showWebGLError(): void {
+    const errorDiv = document.createElement('div');
+    errorDiv.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(20, 20, 20, 0.95);
+      color: #ff4444;
+      padding: 30px;
+      border-radius: 12px;
+      font-family: Arial, sans-serif;
+      max-width: 500px;
+      text-align: center;
+      z-index: 10000;
+      border: 2px solid #ff4444;
+    `;
+    errorDiv.innerHTML = `
+      <h2 style="margin: 0 0 15px 0; color: #ff6666;">WebGL Not Supported</h2>
+      <p style="margin: 0 0 15px 0; line-height: 1.6;">
+        This game requires WebGL to run, but your browser or device doesn't support it.
+      </p>
+      <p style="margin: 0; font-size: 14px; color: #aaa;">
+        Try updating your browser or enabling hardware acceleration in settings.
+      </p>
+    `;
+    document.body.appendChild(errorDiv);
   }
 }
