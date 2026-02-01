@@ -1,6 +1,8 @@
 import { GameState, PowerUpType } from '@core/types';
 
-export function collectPowerUps(state: GameState): void {
+export function collectPowerUps(state: GameState): boolean {
+  let collected = false;
+  
   for (const player of state.players) {
     if (!player.alive) continue;
 
@@ -9,9 +11,12 @@ export function collectPowerUps(state: GameState): void {
       if (pu.gridPos.col === player.gridPos.col && pu.gridPos.row === player.gridPos.row) {
         applyPowerUp(state, player.id, pu.type);
         state.powerUps.splice(i, 1);
+        collected = true;
       }
     }
   }
+  
+  return collected;
 }
 
 function applyPowerUp(state: GameState, playerId: number, type: PowerUpType): void {
