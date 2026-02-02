@@ -521,6 +521,7 @@ export class MiamiBeachTheme {
     positions.forEach(pos => {
       const group = new THREE.Group();
       group.position.set(pos.x, 0, pos.z);
+      group.userData.isThemeDecoration = true;
 
       // Umbrella pole
       const poleGeo = new THREE.CylinderGeometry(0.03, 0.03, 2.5, 8);
@@ -564,6 +565,7 @@ export class MiamiBeachTheme {
       const group = new THREE.Group();
       group.position.set(board.x, 0.4, board.z);
       group.rotation.y = board.rot;
+      group.userData.isThemeDecoration = true;
 
       // Surfboard shape
       const shape = new THREE.Shape();
