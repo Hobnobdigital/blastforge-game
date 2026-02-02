@@ -649,7 +649,7 @@ export class MenuManager {
     
     let levelsHtml = '<div class="level-grid">';
     LEVELS.forEach((level: { id: number; name: string }, index: number) => {
-      const isUnlocked = index === 0 || stats.levelsCompleted.includes(level.id - 1);
+      const isUnlocked = true; // All levels unlocked
       const isCompleted = stats.levelsCompleted.includes(level.id);
       const isSelected = level.id === this.selectedLevel;
       

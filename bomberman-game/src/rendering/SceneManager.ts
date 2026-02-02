@@ -32,9 +32,9 @@ export class SceneManager {
   // Theme manager
   private themeManager: ThemeManager;
 
-  // Shared geometries - bombs scaled up 2x for visibility
+  // Shared geometries - bombs scaled up 3x for visibility
   private geoBlock = new THREE.BoxGeometry(TILE_WORLD_SIZE * 0.95, TILE_WORLD_SIZE * 0.95, TILE_WORLD_SIZE * 0.95);
-  private geoBomb = new THREE.SphereGeometry(0.5, 16, 16);
+  private geoBomb = new THREE.SphereGeometry(0.7, 16, 16);
   private geoExplosion = new THREE.BoxGeometry(TILE_WORLD_SIZE * 0.9, 0.3, TILE_WORLD_SIZE * 0.9);
   private geoPowerUp = new THREE.BoxGeometry(0.4, 0.4, 0.4);
 
@@ -60,16 +60,16 @@ export class SceneManager {
     this.matHard = new THREE.MeshStandardMaterial({ color: 0x555555 });
     this.matSoft = new THREE.MeshStandardMaterial({ color: 0x8b6914 });
 
-    // Camera — perspective camera with isometric-style view for 3D depth
+    // Camera — perspective camera positioned to see entire board
     const center = (GRID_SIZE - 1) / 2;
     this.camera = new THREE.PerspectiveCamera(
-      50,
+      60, // Wider FOV to see more
       window.innerWidth / window.innerHeight,
       0.1,
       200
     );
-    // Position camera at an angle to show 3D depth while seeing the whole board
-    this.camera.position.set(center + 12, 16, center + 12);
+    // Position camera higher and further back to see entire board
+    this.camera.position.set(center, 22, center + 16);
     this.camera.lookAt(center, 0, center);
 
     // Renderer — graceful fallback when WebGL is unavailable
