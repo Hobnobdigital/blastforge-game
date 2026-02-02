@@ -7,7 +7,7 @@ import { ThemeManager, ThemeMaterials } from '@themes/ThemeManager';
 
 export class SceneManager {
   readonly scene: THREE.Scene;
-  readonly camera: THREE.PerspectiveCamera;
+  readonly camera: THREE.OrthographicCamera;
   readonly renderer: THREE.WebGLRenderer;
 
   // Mesh pools
@@ -60,10 +60,19 @@ export class SceneManager {
     this.matHard = new THREE.MeshStandardMaterial({ color: 0x555555 });
     this.matSoft = new THREE.MeshStandardMaterial({ color: 0x8b6914 });
 
-    // Camera — isometric-ish view looking down at the grid center
+    // Camera — orthographic top-down view to show full board
     const center = (GRID_SIZE - 1) / 2;
-    this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
-    this.camera.position.set(center, 18, center + 12);
+    const aspect = window.innerWidth / window.innerHeight;
+    const frustumSize = GRID_SIZE + 4; // Covers grid with padding
+    this.camera = new THREE.OrthographicCamera(
+      frustumSize * aspect / -2,
+      frustumSize * aspect / 2,
+      frustumSize / 2,
+      frustumSize / -2,
+      0.1,
+      100
+    );
+    this.camera.position.set(center, 10, center); // Top-down view
     this.camera.lookAt(center, 0, center);
 
     // Renderer — graceful fallback when WebGL is unavailable
@@ -118,7 +127,12 @@ export class SceneManager {
 
     // Handle resize
     window.addEventListener('resize', () => {
-      this.camera.aspect = window.innerWidth / window.innerHeight;
+      const aspect = window.innerWidth / window.innerHeight;
+      const frustumSize = 20;
+      this.camera.left = frustumSize * aspect / -2;
+      this.camera.right = frustumSize * aspect / 2;
+      this.camera.top = frustumSize / 2;
+      this.camera.bottom = frustumSize / -2;
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(window.innerWidth, window.innerHeight);
     });
@@ -286,6 +300,8 @@ export class SceneManager {
     }
   }
 
+  private frameCount = 0;
+
   render(_deltaTime?: number): void {
     // Calculate frame delta time for smooth weather animation
     const now = performance.now();
@@ -299,6 +315,12 @@ export class SceneManager {
 
     // Update theme animations (water waves, palm trees, etc.)
     this.themeManager.update(this.frameDeltaTime);
+
+    // Log scene info every 60 frames (roughly once per second)
+    this.frameCount++;
+    if (this.frameCount % 60 === 0) {
+      console.log(`[SceneManager] 📊 Frame ${this.frameCount}, Scene children: ${this.scene.children.length}, Current theme: ${this.currentTheme}`);
+    }
 
     this.renderer.render(this.scene, this.camera);
   }
@@ -317,6 +339,7 @@ export class SceneManager {
   }
 
   setTheme(theme: LevelTheme): void {
+    console.log(`[SceneManager] 🎨 setTheme() called: ${theme}`);
     this.currentTheme = theme;
 
     // Load theme through ThemeManager
@@ -324,11 +347,14 @@ export class SceneManager {
 
     // Get theme materials
     const themeMaterials = this.themeManager.getMaterials();
+    console.log('[SceneManager] 📦 Got theme materials:', themeMaterials);
 
     // Update floor material
+    console.log('[SceneManager] 🔄 Updating floor material...');
     this.updateFloorMaterial(themeMaterials.floor);
 
     // Update block materials
+    console.log('[SceneManager] 🔄 Updating block materials...');
     this.updateBlockMaterials(themeMaterials.hardBlock, themeMaterials.softBlock);
 
     // Set weather based on theme
@@ -345,15 +371,20 @@ export class SceneManager {
   }
 
   private updateFloorMaterial(newMaterial: THREE.Material): void {
+    console.log(`[SceneManager] 🔄 updateFloorMaterial() called. Current: ${this.matFloor.uuid}, New: ${newMaterial.uuid}`);
     // Dispose old material if it's not being used elsewhere
     if (this.matFloor !== newMaterial) {
       this.matFloor.dispose();
       this.matFloor = newMaterial;
       this.floorMesh.material = this.matFloor;
+      console.log('[SceneManager] ✅ Floor material updated');
+    } else {
+      console.log('[SceneManager] ⚠️ Floor material is the same reference, skipping update');
     }
   }
 
   private updateBlockMaterials(hardMat: THREE.Material, softMat: THREE.Material): void {
+    console.log('[SceneManager] 🔄 updateBlockMaterials() called');
     // Dispose old materials
     this.matHard.dispose();
     this.matSoft.dispose();
@@ -365,6 +396,7 @@ export class SceneManager {
     // Update instanced mesh materials
     this.hardBlockPool.material = this.matHard;
     this.softBlockPool.material = this.matSoft;
+    console.log('[SceneManager] ✅ Block materials updated on instanced meshes');
   }
 
   getCurrentTheme(): LevelTheme {

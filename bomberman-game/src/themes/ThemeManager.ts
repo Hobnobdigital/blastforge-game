@@ -40,11 +40,13 @@ export class ThemeManager {
 
   /** Load and activate a theme */
   public loadTheme(theme: LevelTheme): void {
+    console.log(`[ThemeManager] 🎨 loadTheme() called with theme: ${theme}`);
     // Cleanup existing theme
     this.cleanup();
 
     switch (theme) {
       case LevelTheme.MIAMI_BEACH:
+        console.log('[ThemeManager] 🏖️ Creating Miami Beach theme...');
         this.currentTheme = this.createMiamiBeachTheme();
         break;
       case LevelTheme.CLASSIC:
@@ -63,13 +65,17 @@ export class ThemeManager {
   }
 
   private createMiamiBeachTheme(): ActiveTheme {
+    console.log('[ThemeManager] 🏗️ createMiamiBeachTheme() called');
     const instance = new MiamiBeachTheme(this.scene);
     instance.addBeachDecorations();
+
+    const materials = instance.getMaterials();
+    console.log('[ThemeManager] ✅ Miami Beach theme created. Materials:', Object.keys(materials));
 
     return {
       name: LevelTheme.MIAMI_BEACH,
       instance,
-      materials: instance.getMaterials(),
+      materials,
     };
   }
 
@@ -148,7 +154,9 @@ export class ThemeManager {
 
   /** Get materials for the current theme */
   public getMaterials(): ThemeMaterials {
-    return this.currentTheme?.materials ?? this.defaultMaterials;
+    const materials = this.currentTheme?.materials ?? this.defaultMaterials;
+    console.log(`[ThemeManager] 📦 getMaterials() returning materials for theme: ${this.currentTheme?.name ?? 'default'}`);
+    return materials;
   }
 
   /** Get the current theme type */

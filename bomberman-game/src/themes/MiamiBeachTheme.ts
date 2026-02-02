@@ -30,10 +30,13 @@ export class MiamiBeachTheme {
   private textureCache: Map<string, THREE.Texture> = new Map();
 
   constructor(scene: THREE.Scene) {
+    console.log('[MiamiBeachTheme] 🏖️ Constructor called');
     this.scene = scene;
     this.assets = this.createAssets();
+    console.log('[MiamiBeachTheme] ✅ Assets created:', Object.keys(this.assets));
     this.setupEnvironment();
     this.createDecorations();
+    console.log('[MiamiBeachTheme] 🎉 Theme setup complete. Scene children count:', this.scene.children.length);
   }
 
   /** Generate procedural sand texture with wave patterns */
@@ -325,8 +328,11 @@ export class MiamiBeachTheme {
 
   /** Setup the environment - lighting, sky, water plane */
   private setupEnvironment(): void {
+    console.log('[MiamiBeachTheme] 🌅 Setting up environment...');
     // Clear existing lights
+    const lightsRemoved = this.scene.children.filter(c => c instanceof THREE.Light).length;
     this.scene.children.filter(c => c instanceof THREE.Light).forEach(l => this.scene.remove(l));
+    console.log(`[MiamiBeachTheme] 💡 Removed ${lightsRemoved} existing lights`);
 
     // Warm sunset ambient light
     const ambientLight = new THREE.AmbientLight(0xffaa77, 0.4);
@@ -358,6 +364,7 @@ export class MiamiBeachTheme {
 
     // Volumetric-style fog for sunset atmosphere
     this.scene.fog = new THREE.FogExp2(0xffaa88, 0.015);
+    console.log('[MiamiBeachTheme] 🌫️ Fog added');
 
     // Sky background
     const skyGeo = new THREE.SphereGeometry(80, 32, 32);
@@ -366,20 +373,26 @@ export class MiamiBeachTheme {
       side: THREE.BackSide,
     });
     const skyMesh = new THREE.Mesh(skyGeo, skyMat);
+    skyMesh.name = 'miami_sky';
     this.scene.add(skyMesh);
+    console.log('[MiamiBeachTheme] 🌌 Sky sphere added');
 
     // Water plane (surrounding the play area)
     const waterGeo = new THREE.PlaneGeometry(120, 120, 64, 64);
     this.waterMesh = new THREE.Mesh(waterGeo, this.assets.waterMaterial);
     this.waterMesh.rotation.x = -Math.PI / 2;
     this.waterMesh.position.y = -0.5;
+    this.waterMesh.name = 'miami_water';
     this.scene.add(this.waterMesh);
+    console.log('[MiamiBeachTheme] 🌊 Water plane added at y=-0.5');
   }
 
   /** Create palm trees and beach decorations */
   private createDecorations(): void {
+    console.log('[MiamiBeachTheme] 🌴 Creating decorations...');
     this.createPalmTrees();
     this.createBreezeParticles();
+    console.log(`[MiamiBeachTheme] 🎨 Decorations complete. Palm trees: ${this.palmTrees.length}`);
   }
 
   /** Create animated palm trees with swaying fronds */
@@ -616,6 +629,7 @@ export class MiamiBeachTheme {
 
   /** Get materials for the level */
   public getMaterials() {
+    console.log('[MiamiBeachTheme] 📦 getMaterials() called');
     return {
       floor: this.assets.floorMaterial,
       hardBlock: this.assets.hardBlockMaterial,
