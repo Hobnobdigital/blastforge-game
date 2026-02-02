@@ -27,10 +27,8 @@ export class LevelSystem {
   }
 
   canProgressToLevel(levelId: number, completedLevels: number[]): boolean {
-    // Level 1 is always available
-    if (levelId === 1) return true;
-    // Must have completed previous level
-    return completedLevels.includes(levelId - 1);
+    // All levels unlocked for testing
+    return true;
   }
 
   getNextLevel(): LevelConfig | null {

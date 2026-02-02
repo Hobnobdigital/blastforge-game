@@ -38,13 +38,30 @@ export function movePlayer(state: GameState, playerId: number, dt: number): void
 
   // Snap to grid for collision check
   const targetGrid = worldToGrid({ x: nx, y: ny });
-  if (isWalkable(state.grid, targetGrid) && !hasBombAt(state, targetGrid, player.id)) {
-    player.worldPos.x = nx;
-    player.worldPos.y = ny;
-    player.gridPos = worldToGrid(player.worldPos);
+  
+  // Allow movement if:
+  // 1. Target is walkable
+  // 2. No bomb at target (unless it's the player's own bomb they just placed)
+  // 3. OR player is moving away from their current position (even if bomb is there)
+  const currentGrid = player.gridPos;
+  const isMovingAway = (targetGrid.col !== currentGrid.col || targetGrid.row !== currentGrid.row);
+  
+  if (isWalkable(state.grid, targetGrid)) {
+    // Check for bombs - allow walking away from bombs but not onto them
+    const bombAtTarget = hasBombAt(state, targetGrid, playerId);
+    
+    if (!bombAtTarget) {
+      player.worldPos.x = nx;
+      player.worldPos.y = ny;
+      player.gridPos = worldToGrid(player.worldPos);
+    }
   }
 }
 
-function hasBombAt(state: GameState, pos: GridPos, _ignoreOwnerId?: number): boolean {
-  return state.bombs.some(b => b.gridPos.col === pos.col && b.gridPos.row === pos.row);
+function hasBombAt(state: GameState, pos: GridPos, ignoreOwnerId?: number): boolean {
+  return state.bombs.some(b => 
+    b.gridPos.col === pos.col && 
+    b.gridPos.row === pos.row &&
+    b.ownerId !== ignoreOwnerId
+  );
 }

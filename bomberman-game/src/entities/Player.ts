@@ -26,22 +26,22 @@ export class Player {
     this.worldZ = pos.z;
 
     this.mesh = new THREE.Group();
-    // Body
-    const bodyGeo = new THREE.CapsuleGeometry(0.25, 0.3, 4, 8);
+    // Body - scaled up 2x for better visibility
+    const bodyGeo = new THREE.CapsuleGeometry(0.5, 0.6, 4, 8);
     const bodyMat = new THREE.MeshStandardMaterial({ color: 0x2196F3 });
     this.bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
-    this.bodyMesh.position.y = 0.4;
+    this.bodyMesh.position.y = 0.8;
     this.bodyMesh.castShadow = true;
     this.mesh.add(this.bodyMesh);
 
-    // Eyes
-    const eyeGeo = new THREE.SphereGeometry(0.06, 6, 6);
+    // Eyes - scaled up
+    const eyeGeo = new THREE.SphereGeometry(0.12, 6, 6);
     const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
     const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
-    leftEye.position.set(-0.1, 0.55, 0.2);
+    leftEye.position.set(-0.2, 1.1, 0.4);
     this.mesh.add(leftEye);
     const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
-    rightEye.position.set(0.1, 0.55, 0.2);
+    rightEye.position.set(0.2, 1.1, 0.4);
     this.mesh.add(rightEye);
 
     this.mesh.position.set(this.worldX, 0, this.worldZ);

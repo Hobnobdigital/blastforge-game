@@ -94,67 +94,67 @@ export class Enemy {
   private createVisuals(): void {
     const color = ENEMY_COLORS[this.type];
     
-    // Body shape varies by type
+    // Body shape varies by type - scaled up 2x for visibility
     if (this.type === 'balloon') {
       // Balloon - round, bouncy
-      const bodyGeo = new THREE.SphereGeometry(0.3, 16, 16);
+      const bodyGeo = new THREE.SphereGeometry(0.6, 16, 16);
       const bodyMat = new THREE.MeshStandardMaterial({ color });
       this.bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
-      this.bodyMesh.position.y = 0.35;
+      this.bodyMesh.position.y = 0.7;
       this.bodyMesh.castShadow = true;
       this.mesh.add(this.bodyMesh);
       
       // String
-      const stringGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.2);
+      const stringGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.4);
       const stringMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
       const string = new THREE.Mesh(stringGeo, stringMat);
-      string.position.y = 0.1;
+      string.position.y = 0.2;
       this.mesh.add(string);
     } else if (this.type === 'onion') {
-      // Onion - layered, onion-like
-      const bodyGeo = new THREE.ConeGeometry(0.3, 0.6, 16);
+      // Onion - layered, onion-like - scaled up 2x
+      const bodyGeo = new THREE.ConeGeometry(0.6, 1.2, 16);
       const bodyMat = new THREE.MeshStandardMaterial({ color });
       this.bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
-      this.bodyMesh.position.y = 0.4;
+      this.bodyMesh.position.y = 0.8;
       this.bodyMesh.castShadow = true;
       this.mesh.add(this.bodyMesh);
       
       // Layers detail
-      const ringGeo = new THREE.TorusGeometry(0.25, 0.03, 8, 16);
+      const ringGeo = new THREE.TorusGeometry(0.5, 0.06, 8, 16);
       const ringMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
       const ring = new THREE.Mesh(ringGeo, ringMat);
       ring.rotation.x = Math.PI / 2;
-      ring.position.y = 0.4;
+      ring.position.y = 0.8;
       this.mesh.add(ring);
     } else {
-      // Tiger - sleek, angular
-      const bodyGeo = new THREE.BoxGeometry(0.4, 0.5, 0.6);
+      // Tiger - sleek, angular - scaled up 2x
+      const bodyGeo = new THREE.BoxGeometry(0.8, 1.0, 1.2);
       const bodyMat = new THREE.MeshStandardMaterial({ color });
       this.bodyMesh = new THREE.Mesh(bodyGeo, bodyMat);
-      this.bodyMesh.position.y = 0.35;
+      this.bodyMesh.position.y = 0.7;
       this.bodyMesh.castShadow = true;
       this.mesh.add(this.bodyMesh);
       
       // Stripes
-      const stripeGeo = new THREE.BoxGeometry(0.42, 0.1, 0.4);
+      const stripeGeo = new THREE.BoxGeometry(0.84, 0.2, 0.8);
       const stripeMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
       const stripe = new THREE.Mesh(stripeGeo, stripeMat);
-      stripe.position.y = 0.45;
+      stripe.position.y = 0.9;
       this.mesh.add(stripe);
     }
     
-    // Eyes (common to all)
-    const eyeGeo = new THREE.SphereGeometry(0.06, 8, 8);
+    // Eyes (common to all) - scaled up 2x
+    const eyeGeo = new THREE.SphereGeometry(0.12, 8, 8);
     const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
-    const pupilGeo = new THREE.SphereGeometry(0.03, 8, 8);
+    const pupilGeo = new THREE.SphereGeometry(0.06, 8, 8);
     const pupilMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
     
     this.eyeLeft = new THREE.Mesh(eyeGeo, eyeMat);
-    this.eyeLeft.position.set(-0.1, 0.55, 0.2);
+    this.eyeLeft.position.set(-0.2, 1.1, 0.4);
     this.mesh.add(this.eyeLeft);
     
     this.eyeRight = new THREE.Mesh(eyeGeo, eyeMat);
-    this.eyeRight.position.set(0.1, 0.55, 0.2);
+    this.eyeRight.position.set(0.2, 1.1, 0.4);
     this.mesh.add(this.eyeRight);
     
     const pupilLeft = new THREE.Mesh(pupilGeo, pupilMat);

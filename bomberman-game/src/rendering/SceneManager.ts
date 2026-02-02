@@ -7,7 +7,7 @@ import { ThemeManager, ThemeMaterials } from '@themes/ThemeManager';
 
 export class SceneManager {
   readonly scene: THREE.Scene;
-  readonly camera: THREE.OrthographicCamera;
+  readonly camera: THREE.PerspectiveCamera;
   readonly renderer: THREE.WebGLRenderer;
 
   // Mesh pools
@@ -32,9 +32,9 @@ export class SceneManager {
   // Theme manager
   private themeManager: ThemeManager;
 
-  // Shared geometries
+  // Shared geometries - bombs scaled up 2x for visibility
   private geoBlock = new THREE.BoxGeometry(TILE_WORLD_SIZE * 0.95, TILE_WORLD_SIZE * 0.95, TILE_WORLD_SIZE * 0.95);
-  private geoBomb = new THREE.SphereGeometry(0.35, 16, 16);
+  private geoBomb = new THREE.SphereGeometry(0.5, 16, 16);
   private geoExplosion = new THREE.BoxGeometry(TILE_WORLD_SIZE * 0.9, 0.3, TILE_WORLD_SIZE * 0.9);
   private geoPowerUp = new THREE.BoxGeometry(0.4, 0.4, 0.4);
 
@@ -60,24 +60,17 @@ export class SceneManager {
     this.matHard = new THREE.MeshStandardMaterial({ color: 0x555555 });
     this.matSoft = new THREE.MeshStandardMaterial({ color: 0x8b6914 });
 
-    // Camera — orthographic top-down view to show full board
+    // Camera — perspective camera with isometric-style view for 3D depth
     const center = (GRID_SIZE - 1) / 2;
-    const aspect = window.innerWidth / window.innerHeight;
-    const frustumSize = GRID_SIZE + 4; // Covers grid with padding
-    this.camera = new THREE.OrthographicCamera(
-      frustumSize * aspect / -2,
-      frustumSize * aspect / 2,
-      frustumSize / 2,
-      frustumSize / -2,
+    this.camera = new THREE.PerspectiveCamera(
+      50,
+      window.innerWidth / window.innerHeight,
       0.1,
-      100
+      200
     );
-    this.camera.position.set(center, 10, center); // Top-down view
+    // Position camera at an angle to show 3D depth while seeing the whole board
+    this.camera.position.set(center + 12, 16, center + 12);
     this.camera.lookAt(center, 0, center);
-
-    // Ensure camera can see below the floor (for water/planes at negative Y)
-    this.camera.bottom = -15; // Extend bottom to see water at y=-0.5
-    this.camera.updateProjectionMatrix();
 
     // Renderer — graceful fallback when WebGL is unavailable
     try {
@@ -131,12 +124,7 @@ export class SceneManager {
 
     // Handle resize
     window.addEventListener('resize', () => {
-      const aspect = window.innerWidth / window.innerHeight;
-      const frustumSize = 20;
-      this.camera.left = frustumSize * aspect / -2;
-      this.camera.right = frustumSize * aspect / 2;
-      this.camera.top = frustumSize / 2;
-      this.camera.bottom = -15; // Keep extended bottom for water visibility
+      this.camera.aspect = window.innerWidth / window.innerHeight;
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(window.innerWidth, window.innerHeight);
     });
@@ -258,9 +246,9 @@ export class SceneManager {
         this.scene.add(mesh);
         this.bombMeshes.set(bomb.id, mesh);
       }
-      mesh.position.set(bomb.gridPos.col, 0.35, bomb.gridPos.row);
-      // Pulse effect
-      const pulse = 1 + 0.05 * Math.sin(Date.now() * 0.01 * (bomb.rushed ? 4 : bomb.primed ? 1 : 2));
+      mesh.position.set(bomb.gridPos.col, 0.5, bomb.gridPos.row);
+      // Pulse effect - more visible
+      const pulse = 1 + 0.15 * Math.sin(Date.now() * 0.01 * (bomb.rushed ? 4 : bomb.primed ? 1 : 2));
       mesh.scale.setScalar(pulse);
     }
   }
