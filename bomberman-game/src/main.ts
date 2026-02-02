@@ -16,6 +16,10 @@ function init() {
     const game = new GameController();
     console.log('🚀 Game initialized successfully!');
     
+    // Start the game loop!
+    game.start();
+    console.log('▶️ Game loop started!');
+    
     // Expose for debugging
     (window as any).game = game;
     (window as any).audio = (game as any).audio;
