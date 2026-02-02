@@ -374,6 +374,7 @@ export class MiamiBeachTheme {
     });
     const skyMesh = new THREE.Mesh(skyGeo, skyMat);
     skyMesh.name = 'miami_sky';
+    skyMesh.userData.isThemeDecoration = true;
     this.scene.add(skyMesh);
     console.log('[MiamiBeachTheme] 🌌 Sky sphere added');
 
@@ -383,6 +384,7 @@ export class MiamiBeachTheme {
     this.waterMesh.rotation.x = -Math.PI / 2;
     this.waterMesh.position.y = -0.5;
     this.waterMesh.name = 'miami_water';
+    this.waterMesh.userData.isThemeDecoration = true;
     this.scene.add(this.waterMesh);
     console.log('[MiamiBeachTheme] 🌊 Water plane added at y=-0.5');
   }
@@ -411,6 +413,7 @@ export class MiamiBeachTheme {
       palmGroup.position.set(pos.x, 0, pos.z);
       palmGroup.rotation.y = pos.rotation;
       palmGroup.scale.setScalar(pos.scale);
+      palmGroup.userData.isThemeDecoration = true;
 
       // Curved trunk
       const trunkCurve = new THREE.CatmullRomCurve3([
@@ -495,7 +498,7 @@ export class MiamiBeachTheme {
     });
 
     this.breezeParticles = new THREE.Points(geometry, material);
-    this.breezeParticles.userData = { velocities };
+    this.breezeParticles.userData = { velocities, isThemeDecoration: true };
     this.scene.add(this.breezeParticles);
   }
 

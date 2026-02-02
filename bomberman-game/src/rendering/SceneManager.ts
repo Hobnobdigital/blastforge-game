@@ -75,6 +75,10 @@ export class SceneManager {
     this.camera.position.set(center, 10, center); // Top-down view
     this.camera.lookAt(center, 0, center);
 
+    // Ensure camera can see below the floor (for water/planes at negative Y)
+    this.camera.bottom = -15; // Extend bottom to see water at y=-0.5
+    this.camera.updateProjectionMatrix();
+
     // Renderer — graceful fallback when WebGL is unavailable
     try {
       this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -132,7 +136,7 @@ export class SceneManager {
       this.camera.left = frustumSize * aspect / -2;
       this.camera.right = frustumSize * aspect / 2;
       this.camera.top = frustumSize / 2;
-      this.camera.bottom = frustumSize / -2;
+      this.camera.bottom = -15; // Keep extended bottom for water visibility
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(window.innerWidth, window.innerHeight);
     });
