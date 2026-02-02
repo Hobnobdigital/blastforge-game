@@ -677,14 +677,17 @@ export class MenuManager {
     panel.querySelectorAll('.level-card').forEach(card => {
       card.addEventListener('click', () => {
         const levelId = parseInt(card.getAttribute('data-level') || '1');
-        const levelIndex = levelId - 1;
-        const isUnlocked = levelIndex === 0 || stats.levelsCompleted.includes(levelId - 1);
+        const isUnlocked = true; // All levels unlocked
         
         if (isUnlocked) {
           this.selectedLevel = levelId;
+          console.log(`[MenuManager] Selected level: ${this.selectedLevel}`);
           // Update visual selection
           panel.querySelectorAll('.level-card').forEach(c => c.classList.remove('selected'));
           card.classList.add('selected');
+          
+          // Play selection sound
+          audioEngine.playSoundEffect('ui-select');
         }
       });
     });

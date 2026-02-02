@@ -145,17 +145,20 @@ export class GameController {
   }
 
   private startGame(levelId: number): void {
+    console.log(`[GameController] Starting game with levelId: ${levelId}`);
     settingsManager.incrementGamesStarted();
 
     // Initialize audio if not already done
     if (!this.audioInitialized) {
       this.audio.initialize();
       this.audioInitialized = true;
+      console.log('[GameController] Audio initialized');
     }
 
     // Set the level
     levelSystem.setLevel(levelId - 1);
     this.state.currentLevel = levelId;
+    console.log(`[GameController] Current level set to: ${this.state.currentLevel}`);
 
     // Create level state
     const levelConfig = levelSystem.getCurrentLevel();
@@ -284,6 +287,7 @@ export class GameController {
     const detonated = tickBombs(this.state.base, dt);
     for (const pos of detonated) {
       spawnExplosion(this.state.base, pos, this.state.base.players[0]?.bombRange ?? 2);
+      console.log('[GameController] Bomb exploded, playing sound');
       this.audio.playExplosion();
     }
 

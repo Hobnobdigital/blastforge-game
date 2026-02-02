@@ -202,6 +202,18 @@ export class AudioEngine {
     this.playSound('sfx-defeat');
   }
 
+  /**
+   * Play UI sound effect
+   */
+  playSoundEffect(soundName: string): void {
+    // For now, use a generic UI sound or bomb place as fallback
+    if (soundName === 'ui-select') {
+      this.playSound('sfx-bomb-place');
+    } else {
+      this.playSound(soundName);
+    }
+  }
+
   // ── Volume Controls ──
 
   /**
