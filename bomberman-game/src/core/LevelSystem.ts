@@ -91,6 +91,9 @@ export class LevelSystem {
       case LevelTheme.FOREST:
         // More dense vegetation
         break;
+      case LevelTheme.MIAMI_BEACH:
+        // Miami Beach has a relaxed layout with open spaces
+        break;
     }
   }
 
@@ -134,6 +137,8 @@ export class LevelSystem {
         return { background: 0x1a1a0a, floor: 0x6a5a3a, accent: 0xffcc66 };
       case LevelTheme.SPACE:
         return { background: 0x050510, floor: 0x2a2a4a, accent: 0xaa88ff };
+      case LevelTheme.MIAMI_BEACH:
+        return { background: 0xff6b9d, floor: 0xe8c98f, accent: 0x40e0d0 };
       case LevelTheme.CLASSIC:
       default:
         return { background: 0x0a0a0a, floor: 0x2a2a2a, accent: 0x00aaff };

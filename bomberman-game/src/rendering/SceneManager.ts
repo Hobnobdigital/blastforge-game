@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GameState, TileType, GRID_SIZE, TILE_WORLD_SIZE } from '@core/types';
+import { AstronautCharacter, AstronautAnimationState } from '@entities/AstronautCharacter';
 import { WeatherSystem, WeatherType } from '@systems/WeatherSystem';
 import { LevelTheme } from '@core/ExtendedTypes';
 
@@ -12,7 +13,7 @@ export class SceneManager {
   private floorMesh!: THREE.Mesh;
   private hardBlockPool: THREE.InstancedMesh;
   private softBlockPool: THREE.InstancedMesh;
-  private playerMeshes: THREE.Mesh[] = [];
+  private astronautCharacters: AstronautCharacter[] = [];
   private bombMeshes: Map<number, THREE.Mesh> = new Map();
   private explosionMeshes: THREE.Mesh[] = [];
   private powerUpMeshes: THREE.Mesh[] = [];
@@ -21,7 +22,6 @@ export class SceneManager {
   private readonly matFloor = new THREE.MeshStandardMaterial({ color: 0x2a2a2a });
   private readonly matHard = new THREE.MeshStandardMaterial({ color: 0x555555 });
   private readonly matSoft = new THREE.MeshStandardMaterial({ color: 0x8b6914 });
-  private readonly matPlayer = new THREE.MeshStandardMaterial({ color: 0x00aaff });
   private readonly matBomb = new THREE.MeshStandardMaterial({ color: 0x111111 });
   private readonly matBombPrimed = new THREE.MeshStandardMaterial({ color: 0x3344ff, emissive: 0x1122aa });
   private readonly matBombRushed = new THREE.MeshStandardMaterial({ color: 0xff2222, emissive: 0xaa1111 });
@@ -30,7 +30,6 @@ export class SceneManager {
 
   // Shared geometries
   private geoBlock = new THREE.BoxGeometry(TILE_WORLD_SIZE * 0.95, TILE_WORLD_SIZE * 0.95, TILE_WORLD_SIZE * 0.95);
-  private geoPlayer = new THREE.BoxGeometry(0.7, 0.9, 0.7);
   private geoBomb = new THREE.SphereGeometry(0.35, 16, 16);
   private geoExplosion = new THREE.BoxGeometry(TILE_WORLD_SIZE * 0.9, 0.3, TILE_WORLD_SIZE * 0.9);
   private geoPowerUp = new THREE.BoxGeometry(0.4, 0.4, 0.4);
@@ -40,6 +39,10 @@ export class SceneManager {
   // Weather system
   private weatherSystem: WeatherSystem;
   private currentTheme: LevelTheme = LevelTheme.CLASSIC;
+
+  // Frame timing for weather animation
+  private lastFrameTime = 0;
+  private frameDeltaTime = 0.016;
 
   constructor() {
     this.scene = new THREE.Scene();
@@ -136,27 +139,72 @@ export class SceneManager {
     this.softBlockPool.instanceMatrix.needsUpdate = true;
 
     // Players
-    this.syncPlayers(state);
+    this.syncPlayers(state, deltaTime);
     this.syncBombs(state);
     this.syncExplosions(state);
     this.syncPowerUps(state);
   }
 
-  private syncPlayers(state: GameState): void {
-    // Grow pool if needed
-    while (this.playerMeshes.length < state.players.length) {
-      const m = new THREE.Mesh(this.geoPlayer, this.matPlayer);
-      m.castShadow = true;
-      this.scene.add(m);
-      this.playerMeshes.push(m);
+  private syncPlayers(state: GameState, deltaTime: number): void {
+    // Grow pool if needed - create astronaut characters
+    while (this.astronautCharacters.length < state.players.length) {
+      const playerId = this.astronautCharacters.length;
+      const astronaut = new AstronautCharacter({
+        playerId: playerId,
+        scale: 1.0,
+      });
+      this.scene.add(astronaut.root);
+      this.astronautCharacters.push(astronaut);
     }
-    for (let i = 0; i < this.playerMeshes.length; i++) {
-      const mesh = this.playerMeshes[i];
-      if (i < state.players.length && state.players[i].alive) {
-        mesh.visible = true;
-        mesh.position.set(state.players[i].worldPos.x, 0.45, state.players[i].worldPos.y);
+    
+    // Update each astronaut character
+    for (let i = 0; i < this.astronautCharacters.length; i++) {
+      const astronaut = this.astronautCharacters[i];
+      
+      if (i < state.players.length) {
+        const player = state.players[i];
+        
+        if (player.alive) {
+          astronaut.setVisible(true);
+          
+          // Update position
+          astronaut.setPosition(player.worldPos.x, 0, player.worldPos.y);
+          
+          // Determine animation state based on movement
+          if (player.moveDir !== 0) {
+            astronaut.setAnimationState(AstronautAnimationState.WALK);
+            
+            // Face movement direction
+            let rotation = 0;
+            switch (player.moveDir) {
+              case 1: rotation = 0; break; // Up/North
+              case 2: rotation = Math.PI; break; // Down/South  
+              case 3: rotation = -Math.PI / 2; break; // Left/West
+              case 4: rotation = Math.PI / 2; break; // Right/East
+            }
+            astronaut.setRotationY(rotation);
+          } else {
+            astronaut.setAnimationState(AstronautAnimationState.IDLE);
+          }
+          
+          // Update animation
+          astronaut.update(deltaTime);
+        } else {
+          // Player died
+          if (astronaut.getAnimationState() !== AstronautAnimationState.DEATH && 
+              !astronaut.isDeathComplete()) {
+            astronaut.die();
+          }
+          astronaut.update(deltaTime);
+          
+          // Hide completely after death animation
+          if (astronaut.isDeathComplete()) {
+            astronaut.setVisible(false);
+          }
+        }
       } else {
-        mesh.visible = false;
+        // Extra astronauts beyond player count - hide them
+        astronaut.setVisible(false);
       }
     }
   }
@@ -226,9 +274,16 @@ export class SceneManager {
     }
   }
 
-  render(deltaTime: number = 0.016): void {
+  render(_deltaTime?: number): void {
+    // Calculate frame delta time for smooth weather animation
+    const now = performance.now();
+    if (this.lastFrameTime > 0) {
+      this.frameDeltaTime = Math.min((now - this.lastFrameTime) / 1000, 0.05);
+    }
+    this.lastFrameTime = now;
+    
     // Update weather system
-    this.weatherSystem.update(deltaTime);
+    this.weatherSystem.update(this.frameDeltaTime);
     
     this.renderer.render(this.scene, this.camera);
   }
@@ -248,6 +303,8 @@ export class SceneManager {
 
   setTheme(theme: LevelTheme): void {
     this.currentTheme = theme;
+    
+    // Set weather based on theme
     const weather = WeatherSystem.getWeatherForTheme(theme);
     if (weather !== WeatherType.NONE) {
       this.weatherSystem.setWeather(weather, 0.6);
@@ -258,6 +315,38 @@ export class SceneManager {
 
   getCurrentTheme(): LevelTheme {
     return this.currentTheme;
+  }
+
+  dispose(): void {
+    this.weatherSystem.dispose();
+    
+    // Dispose astronaut characters
+    for (const astronaut of this.astronautCharacters) {
+      astronaut.dispose();
+      this.scene.remove(astronaut.root);
+    }
+    this.astronautCharacters = [];
+    
+    this.renderer.dispose();
+    
+    // Clean up materials
+    this.matFloor.dispose();
+    this.matHard.dispose();
+    this.matSoft.dispose();
+    this.matBomb.dispose();
+    this.matBombPrimed.dispose();
+    this.matBombRushed.dispose();
+    this.matExplosion.dispose();
+    this.matPowerUp.dispose();
+    
+    // Clean up geometries
+    this.geoBlock.dispose();
+    this.geoBomb.dispose();
+    this.geoExplosion.dispose();
+    this.geoPowerUp.dispose();
+    
+    // Remove renderer from DOM
+    this.renderer.domElement.remove();
   }
 
   private static showWebGLError(): void {

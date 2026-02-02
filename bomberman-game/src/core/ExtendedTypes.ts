@@ -41,6 +41,7 @@ export enum LevelTheme {
   FOREST = 'forest',
   DESERT = 'desert',
   SPACE = 'space',
+  MIAMI_BEACH = 'miami_beach',
 }
 
 export interface LevelConfig {
@@ -60,6 +61,7 @@ export const LEVELS: LevelConfig[] = [
   { id: 4, name: 'Enchanted Forest', theme: LevelTheme.FOREST, description: 'Nature\'s maze', softBlockDensity: 0.55, enemyCount: 4 },
   { id: 5, name: 'Desert Ruins', theme: LevelTheme.DESERT, description: 'Ancient dangers', softBlockDensity: 0.5, enemyCount: 5 },
   { id: 6, name: 'Space Station', theme: LevelTheme.SPACE, description: 'Zero gravity chaos', softBlockDensity: 0.6, enemyCount: 6 },
+  { id: 7, name: 'Miami Beach', theme: LevelTheme.MIAMI_BEACH, description: 'Sunset vibes and neon lights', softBlockDensity: 0.5, enemyCount: 5 },
 ];
 
 // ── Settings Types ──

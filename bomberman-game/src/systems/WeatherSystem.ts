@@ -271,7 +271,8 @@ export class WeatherSystem {
       this.splashMesh.count = 0;
       this.accumulationMesh.visible = false;
       this.fireLight.intensity = 0;
-      this.fireGlowMesh.material.opacity = 0;
+      const glowMaterial = this.fireGlowMesh.material as THREE.MeshBasicMaterial;
+      glowMaterial.opacity = 0;
     }
   }
 
@@ -336,10 +337,12 @@ export class WeatherSystem {
   private updateFireGlow(): void {
     if (this.currentWeather === WeatherType.ASH) {
       this.fireLight.intensity = 2 * this.intensity;
-      (this.fireGlowMesh.material as THREE.MeshBasicMaterial).opacity = 0.15 * this.intensity;
+      const material = this.fireGlowMesh.material as THREE.MeshBasicMaterial;
+      material.opacity = 0.15 * this.intensity;
     } else {
       this.fireLight.intensity = 0;
-      (this.fireGlowMesh.material as THREE.MeshBasicMaterial).opacity = 0;
+      const material = this.fireGlowMesh.material as THREE.MeshBasicMaterial;
+      material.opacity = 0;
     }
   }
 
@@ -509,7 +512,8 @@ export class WeatherSystem {
     if (this.currentWeather === WeatherType.ASH) {
       const flicker = 0.9 + Math.random() * 0.2;
       this.fireLight.intensity = 2 * this.intensity * flicker;
-      this.fireGlowMesh.material.opacity = 0.15 * this.intensity * flicker;
+      const material = this.fireGlowMesh.material as THREE.MeshBasicMaterial;
+      material.opacity = 0.15 * this.intensity * flicker;
     }
   }
 
@@ -592,8 +596,11 @@ export class WeatherSystem {
     this.ashMaterial.dispose();
     this.pollenMaterial.dispose();
     this.neonMaterial.dispose();
-    (this.splashMesh.material as THREE.Material).dispose();
-    this.accumulationMesh.material.dispose();
-    (this.fireGlowMesh.material as THREE.Material).dispose();
+    const splashMaterial = this.splashMesh.material as THREE.Material;
+    splashMaterial.dispose();
+    const accumulationMaterial = this.accumulationMesh.material as THREE.Material;
+    accumulationMaterial.dispose();
+    const glowMaterial = this.fireGlowMesh.material as THREE.Material;
+    glowMaterial.dispose();
   }
 }

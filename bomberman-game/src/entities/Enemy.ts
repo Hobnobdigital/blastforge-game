@@ -66,9 +66,9 @@ export class Enemy {
   private aiSettings: typeof AI_SETTINGS[EnemyType];
   
   // Visual
-  private bodyMesh: THREE.Mesh;
-  private eyeLeft: THREE.Mesh;
-  private eyeRight: THREE.Mesh;
+  private bodyMesh!: THREE.Mesh;
+  private eyeLeft!: THREE.Mesh;
+  private eyeRight!: THREE.Mesh;
   private animOffset: number = Math.random() * 100;
 
   constructor(config: EnemyConfig, grid: Grid) {

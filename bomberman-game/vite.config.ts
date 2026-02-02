@@ -12,6 +12,7 @@ export default defineConfig({
       '@rendering': resolve(__dirname, 'src/rendering'),
       '@ui': resolve(__dirname, 'src/ui'),
       '@utils': resolve(__dirname, 'src/utils'),
+      '@themes': resolve(__dirname, 'src/themes'),
     },
   },
   build: {

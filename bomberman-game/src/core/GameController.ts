@@ -126,6 +126,11 @@ export class GameController {
     const levelConfig = levelSystem.getCurrentLevel();
     this.state.base = levelSystem.createLevelState(levelConfig);
 
+    // Apply theme and weather
+    const themeColors = levelSystem.getThemeColors(levelConfig.theme);
+    this.scene.setTheme(levelConfig.theme);
+    this.scene.setWeatherEnabled(true);
+
     // Reset session stats
     this.sessionBombsPlaced = 0;
     this.sessionPowerUpsCollected = 0;
