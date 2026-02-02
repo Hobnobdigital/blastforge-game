@@ -1,2 +1,2 @@
 // Audio module exports
-export { AudioEngine } from './AudioEngine';
+export { AudioEngine, audioEngine } from './AudioEngine';

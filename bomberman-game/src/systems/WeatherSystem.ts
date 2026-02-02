@@ -572,6 +572,8 @@ export class WeatherSystem {
         return WeatherType.POLLEN;
       case LevelTheme.SPACE:
         return WeatherType.NEON;
+      case LevelTheme.MIAMI_BEACH:
+        return WeatherType.NONE; // Sunny beach - no weather particles
       case LevelTheme.CLASSIC:
       case LevelTheme.DESERT:
       default:

@@ -21,8 +21,6 @@ export interface ActiveTheme {
 export class ThemeManager {
   private scene: THREE.Scene;
   private currentTheme: ActiveTheme | null = null;
-  private animationFrameId: number | null = null;
-  private lastTime = 0;
 
   // Default materials (fallback)
   private defaultMaterials: ThemeMaterials;
@@ -60,8 +58,8 @@ export class ThemeManager {
         break;
     }
 
-    // Start animation loop for theme effects
-    this.startAnimationLoop();
+    // Note: Animation updates are driven by SceneManager's render loop
+    // via the update() method, not a separate animation loop
   }
 
   private createMiamiBeachTheme(): ActiveTheme {
@@ -141,23 +139,7 @@ export class ThemeManager {
     }
   }
 
-  private startAnimationLoop(): void {
-    this.lastTime = performance.now();
-
-    const animate = (currentTime: number) => {
-      const deltaTime = (currentTime - this.lastTime) / 1000;
-      this.lastTime = currentTime;
-
-      // Update theme animations
-      this.update(deltaTime);
-
-      this.animationFrameId = requestAnimationFrame(animate);
-    };
-
-    this.animationFrameId = requestAnimationFrame(animate);
-  }
-
-  /** Update theme animations - call each frame */
+  /** Update theme animations - called by SceneManager each frame */
   public update(deltaTime: number): void {
     if (this.currentTheme?.instance) {
       this.currentTheme.instance.update(deltaTime);
@@ -181,11 +163,6 @@ export class ThemeManager {
 
   /** Cleanup theme resources */
   public cleanup(): void {
-    if (this.animationFrameId !== null) {
-      cancelAnimationFrame(this.animationFrameId);
-      this.animationFrameId = null;
-    }
-
     if (this.currentTheme?.instance) {
       this.currentTheme.instance.dispose();
     }

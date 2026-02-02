@@ -3,6 +3,7 @@ import { GameState, TileType, GRID_SIZE, TILE_WORLD_SIZE } from '@core/types';
 import { AstronautCharacter, AstronautAnimationState } from '@entities/AstronautCharacter';
 import { WeatherSystem, WeatherType } from '@systems/WeatherSystem';
 import { LevelTheme } from '@core/ExtendedTypes';
+import { ThemeManager, ThemeMaterials } from '@themes/ThemeManager';
 
 export class SceneManager {
   readonly scene: THREE.Scene;
@@ -18,15 +19,18 @@ export class SceneManager {
   private explosionMeshes: THREE.Mesh[] = [];
   private powerUpMeshes: THREE.Mesh[] = [];
 
-  // Materials
-  private readonly matFloor = new THREE.MeshStandardMaterial({ color: 0x2a2a2a });
-  private readonly matHard = new THREE.MeshStandardMaterial({ color: 0x555555 });
-  private readonly matSoft = new THREE.MeshStandardMaterial({ color: 0x8b6914 });
+  // Materials (now mutable for theme switching)
+  private matFloor: THREE.Material;
+  private matHard: THREE.Material;
+  private matSoft: THREE.Material;
   private readonly matBomb = new THREE.MeshStandardMaterial({ color: 0x111111 });
   private readonly matBombPrimed = new THREE.MeshStandardMaterial({ color: 0x3344ff, emissive: 0x1122aa });
   private readonly matBombRushed = new THREE.MeshStandardMaterial({ color: 0xff2222, emissive: 0xaa1111 });
   private readonly matExplosion = new THREE.MeshStandardMaterial({ color: 0xff6600, emissive: 0xff4400, transparent: true, opacity: 0.85 });
   private readonly matPowerUp = new THREE.MeshStandardMaterial({ color: 0x44ff44, emissive: 0x22aa22 });
+
+  // Theme manager
+  private themeManager: ThemeManager;
 
   // Shared geometries
   private geoBlock = new THREE.BoxGeometry(TILE_WORLD_SIZE * 0.95, TILE_WORLD_SIZE * 0.95, TILE_WORLD_SIZE * 0.95);
@@ -47,6 +51,14 @@ export class SceneManager {
   constructor() {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x0a0a0a);
+
+    // Initialize theme manager
+    this.themeManager = new ThemeManager(this.scene);
+
+    // Initialize default materials
+    this.matFloor = new THREE.MeshStandardMaterial({ color: 0x2a2a2a });
+    this.matHard = new THREE.MeshStandardMaterial({ color: 0x555555 });
+    this.matSoft = new THREE.MeshStandardMaterial({ color: 0x8b6914 });
 
     // Camera — isometric-ish view looking down at the grid center
     const center = (GRID_SIZE - 1) / 2;
@@ -281,10 +293,13 @@ export class SceneManager {
       this.frameDeltaTime = Math.min((now - this.lastFrameTime) / 1000, 0.05);
     }
     this.lastFrameTime = now;
-    
+
     // Update weather system
     this.weatherSystem.update(this.frameDeltaTime);
-    
+
+    // Update theme animations (water waves, palm trees, etc.)
+    this.themeManager.update(this.frameDeltaTime);
+
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -303,7 +318,19 @@ export class SceneManager {
 
   setTheme(theme: LevelTheme): void {
     this.currentTheme = theme;
-    
+
+    // Load theme through ThemeManager
+    this.themeManager.loadTheme(theme);
+
+    // Get theme materials
+    const themeMaterials = this.themeManager.getMaterials();
+
+    // Update floor material
+    this.updateFloorMaterial(themeMaterials.floor);
+
+    // Update block materials
+    this.updateBlockMaterials(themeMaterials.hardBlock, themeMaterials.softBlock);
+
     // Set weather based on theme
     const weather = WeatherSystem.getWeatherForTheme(theme);
     if (weather !== WeatherType.NONE) {
@@ -313,22 +340,46 @@ export class SceneManager {
     }
   }
 
+  private updateFloorMaterial(newMaterial: THREE.Material): void {
+    // Dispose old material if it's not being used elsewhere
+    if (this.matFloor !== newMaterial) {
+      this.matFloor.dispose();
+      this.matFloor = newMaterial;
+      this.floorMesh.material = this.matFloor;
+    }
+  }
+
+  private updateBlockMaterials(hardMat: THREE.Material, softMat: THREE.Material): void {
+    // Dispose old materials
+    this.matHard.dispose();
+    this.matSoft.dispose();
+
+    // Update references
+    this.matHard = hardMat;
+    this.matSoft = softMat;
+
+    // Update instanced mesh materials
+    this.hardBlockPool.material = this.matHard;
+    this.softBlockPool.material = this.matSoft;
+  }
+
   getCurrentTheme(): LevelTheme {
     return this.currentTheme;
   }
 
   dispose(): void {
     this.weatherSystem.dispose();
-    
+    this.themeManager.dispose();
+
     // Dispose astronaut characters
     for (const astronaut of this.astronautCharacters) {
       astronaut.dispose();
       this.scene.remove(astronaut.root);
     }
     this.astronautCharacters = [];
-    
+
     this.renderer.dispose();
-    
+
     // Clean up materials
     this.matFloor.dispose();
     this.matHard.dispose();
@@ -338,13 +389,13 @@ export class SceneManager {
     this.matBombRushed.dispose();
     this.matExplosion.dispose();
     this.matPowerUp.dispose();
-    
+
     // Clean up geometries
     this.geoBlock.dispose();
     this.geoBomb.dispose();
     this.geoExplosion.dispose();
     this.geoPowerUp.dispose();
-    
+
     // Remove renderer from DOM
     this.renderer.domElement.remove();
   }

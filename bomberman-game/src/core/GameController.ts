@@ -8,7 +8,7 @@ import { settingsManager } from './SettingsManager';
 import { levelSystem } from './LevelSystem';
 import { MenuManager } from '@ui/MenuManager';
 import { InputManager } from '@input/InputManager';
-import { AudioEngine } from '@audio/AudioEngine';
+import { AudioEngine, audioEngine } from '@audio/AudioEngine';
 import { SceneManager } from '@rendering/SceneManager';
 import { HUD } from '@ui/HUD';
 import { GameLoop } from './GameLoop';
@@ -51,12 +51,18 @@ export class GameController {
   private sessionPowerUpsCollected = 0;
   private _sessionEnemiesDefeated = 0;
   private fpsEl: HTMLElement;
+  
+  // Track previous enemy count for death detection
+  private previousEnemyCount = 0;
+  private playerWasAlive = true;
+
+  private audioInitialized = false;
 
   constructor() {
     // Initialize core systems
     this.input = new InputManager();
     this.scene = new SceneManager();
-    this.audio = new AudioEngine();
+    this.audio = audioEngine;
     this.hud = new HUD();
 
     // Load settings into audio
@@ -88,8 +94,31 @@ export class GameController {
       (alpha) => this.render(alpha)
     );
 
+    // Setup audio initialization on first interaction
+    this.setupAudioInitialization();
+
     // Show main menu
     this.menuManager.showScreen(MenuScreen.MAIN);
+  }
+
+  /**
+   * Initialize audio on first user interaction (required by browsers)
+   */
+  private setupAudioInitialization(): void {
+    const initAudio = () => {
+      if (!this.audioInitialized) {
+        this.audio.initialize();
+        this.audioInitialized = true;
+        this.audio.playMenuMusic();
+        console.log('[GameController] Audio initialized');
+      }
+    };
+
+    // Listen for first interaction
+    const events = ['click', 'touchstart', 'keydown'];
+    events.forEach(event => {
+      document.addEventListener(event, initAudio, { once: true });
+    });
   }
 
   private createInitialExtendedState(): ExtendedGameState {
@@ -118,6 +147,12 @@ export class GameController {
   private startGame(levelId: number): void {
     settingsManager.incrementGamesStarted();
 
+    // Initialize audio if not already done
+    if (!this.audioInitialized) {
+      this.audio.initialize();
+      this.audioInitialized = true;
+    }
+
     // Set the level
     levelSystem.setLevel(levelId - 1);
     this.state.currentLevel = levelId;
@@ -135,12 +170,17 @@ export class GameController {
     this.sessionBombsPlaced = 0;
     this.sessionPowerUpsCollected = 0;
     this._sessionEnemiesDefeated = 0;
+    this.previousEnemyCount = 0;
+    this.playerWasAlive = true;
     this.state.levelStartTime = Date.now();
     this.state.totalPauseTime = 0;
     this.state.pausedAt = null;
 
     // Apply settings
     this.applySettings();
+
+    // Play gameplay music
+    this.audio.playGameplayMusic();
 
     // Transition to playing
     this.state.phase = GamePhase.PLAYING;
@@ -163,6 +203,10 @@ export class GameController {
   private quitToMenu(): void {
     const sessionTime = Math.floor((Date.now() - this.state.session.startTime) / 1000);
     settingsManager.addPlayTime(sessionTime);
+
+    // Stop gameplay music and play menu music
+    this.audio.stopMusic();
+    this.audio.playMenuMusic();
 
     this.state.phase = GamePhase.MENU;
     this.menuManager.showScreen(MenuScreen.MAIN);
@@ -201,6 +245,12 @@ export class GameController {
 
   private updatePlaying(dt: number, input: ExtendedInputState): void {
     const player = this.state.base.players[0];
+
+    // Check for player damage (was alive, now hurt)
+    if (this.playerWasAlive && player && !player.alive) {
+      this.audio.playPlayerDamage();
+    }
+    this.playerWasAlive = player?.alive ?? false;
 
     if (player?.alive) {
       if (input.moveDir !== Direction.None) {
@@ -243,7 +293,30 @@ export class GameController {
       settingsManager.vibrate(50);
     }
 
+    // Track enemy deaths
+    this.trackEnemyDeaths();
+
     this.checkGameEndConditions();
+  }
+
+  /**
+   * Track enemy deaths and play sounds
+   */
+  private trackEnemyDeaths(): void {
+    const enemies = (this.state.base as any).enemies || [];
+    const aliveEnemies = enemies.filter((e: any) => e.alive);
+    
+    // Check if enemies died since last frame
+    if (aliveEnemies.length < this.previousEnemyCount) {
+      const deaths = this.previousEnemyCount - aliveEnemies.length;
+      for (let i = 0; i < deaths; i++) {
+        this.audio.playEnemyDeath();
+        this._sessionEnemiesDefeated++;
+        settingsManager.incrementEnemiesDefeated();
+      }
+    }
+    
+    this.previousEnemyCount = aliveEnemies.length;
   }
 
   private checkGameEndConditions(): void {
@@ -271,6 +344,10 @@ export class GameController {
     settingsManager.recordWin(this.state.currentLevel, levelTime);
     settingsManager.vibrate([100, 50, 100]);
 
+    // Play victory sound and stop gameplay music
+    this.audio.stopMusic();
+    this.audio.playVictory();
+
     this.menuManager.showGameOver(true, {
       time: levelTime,
       bombs: this.sessionBombsPlaced,
@@ -285,6 +362,10 @@ export class GameController {
 
     settingsManager.recordLoss();
     settingsManager.vibrate([200, 100, 200]);
+
+    // Play defeat sound and stop gameplay music
+    this.audio.stopMusic();
+    this.audio.playDefeat();
 
     const levelTime = Math.floor((Date.now() - this.state.levelStartTime - this.state.totalPauseTime) / 1000);
     this.menuManager.showGameOver(false, {
