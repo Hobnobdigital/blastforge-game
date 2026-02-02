@@ -359,7 +359,24 @@ export class WeatherSystem {
   private spawnParticle(particle: ParticleData): void {
     const x = this.bounds.minX + Math.random() * (this.bounds.maxX - this.bounds.minX);
     const z = this.bounds.minZ + Math.random() * (this.bounds.maxZ - this.bounds.minZ);
-    const y = Math.random() * this.bounds.height;
+    
+    // Set Y position based on weather type:
+    // - Falling weather (RAIN, SNOW, POLLEN): spawn at top
+    // - Rising weather (ASH, NEON): spawn at bottom
+    let y: number;
+    switch (this.currentWeather) {
+      case WeatherType.RAIN:
+      case WeatherType.SNOW:
+      case WeatherType.POLLEN:
+        y = this.bounds.height; // Spawn at top and fall down
+        break;
+      case WeatherType.ASH:
+      case WeatherType.NEON:
+        y = Math.random() * 5; // Spawn near bottom and rise up
+        break;
+      default:
+        y = Math.random() * this.bounds.height;
+    }
 
     particle.position.set(x, y, z);
     particle.life = Math.random();
