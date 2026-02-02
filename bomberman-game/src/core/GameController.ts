@@ -161,6 +161,10 @@ export class GameController {
     const levelConfig = levelSystem.getCurrentLevel();
     this.state.base = levelSystem.createLevelState(levelConfig);
 
+    // Initialize enemy count tracking
+    const initialEnemies = (this.state.base as any).enemies || [];
+    this.previousEnemyCount = initialEnemies.filter((e: any) => e.alive).length;
+
     // Apply theme and weather
     const themeColors = levelSystem.getThemeColors(levelConfig.theme);
     this.scene.setTheme(levelConfig.theme);

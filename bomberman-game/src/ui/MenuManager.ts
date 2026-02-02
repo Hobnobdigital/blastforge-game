@@ -3,6 +3,7 @@ import {
   LEVELS,
 } from '@core/ExtendedTypes';
 import { settingsManager } from '@core/SettingsManager';
+import { audioEngine } from '@audio/AudioEngine';
 
 export class MenuManager {
   private container: HTMLElement;
@@ -439,21 +440,27 @@ export class MenuManager {
       <div class="menu-section">
         <div class="menu-section-title">Audio</div>
         <div class="setting-row">
-          <span class="setting-label">Music Volume</span>
+          <span class="setting-label">🔇 Mute All</span>
+          <div class="setting-control">
+            <div class="toggle ${audioEngine.isMuted() ? 'active' : ''}" id="mute-toggle"></div>
+          </div>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">🎵 Music Volume</span>
           <div class="setting-control">
             <input type="range" class="slider" id="music-volume" min="0" max="100" value="${Math.round(settings.musicVolume * 100)}">
             <span id="music-value">${Math.round(settings.musicVolume * 100)}%</span>
           </div>
         </div>
         <div class="setting-row">
-          <span class="setting-label">SFX Volume</span>
+          <span class="setting-label">🔊 SFX Volume</span>
           <div class="setting-control">
             <input type="range" class="slider" id="sfx-volume" min="0" max="100" value="${Math.round(settings.sfxVolume * 100)}">
             <span id="sfx-value">${Math.round(settings.sfxVolume * 100)}%</span>
           </div>
         </div>
         <div class="setting-row">
-          <span class="setting-label">UI Volume</span>
+          <span class="setting-label">🔔 UI Volume</span>
           <div class="setting-control">
             <input type="range" class="slider" id="ui-volume" min="0" max="100" value="${Math.round(settings.uiVolume * 100)}">
             <span id="ui-value">${Math.round(settings.uiVolume * 100)}%</span>
@@ -490,25 +497,40 @@ export class MenuManager {
     const musicSlider = panel.querySelector('#music-volume') as HTMLInputElement;
     const musicValue = panel.querySelector('#music-value') as HTMLElement;
     musicSlider?.addEventListener('input', () => {
+      const value = parseInt(musicSlider.value) / 100;
       musicValue.textContent = `${musicSlider.value}%`;
-      settingsManager.setMusicVolume(parseInt(musicSlider.value) / 100);
+      settingsManager.setMusicVolume(value);
+      audioEngine.setMusicVolume(value);
     });
     
     const sfxSlider = panel.querySelector('#sfx-volume') as HTMLInputElement;
     const sfxValue = panel.querySelector('#sfx-value') as HTMLElement;
     sfxSlider?.addEventListener('input', () => {
+      const value = parseInt(sfxSlider.value) / 100;
       sfxValue.textContent = `${sfxSlider.value}%`;
-      settingsManager.setSfxVolume(parseInt(sfxSlider.value) / 100);
+      settingsManager.setSfxVolume(value);
+      audioEngine.setSfxVolume(value);
     });
     
     const uiSlider = panel.querySelector('#ui-volume') as HTMLInputElement;
     const uiValue = panel.querySelector('#ui-value') as HTMLElement;
     uiSlider?.addEventListener('input', () => {
+      const value = parseInt(uiSlider.value) / 100;
       uiValue.textContent = `${uiSlider.value}%`;
-      settingsManager.setUiVolume(parseInt(uiSlider.value) / 100);
+      settingsManager.setUiVolume(value);
+      audioEngine.setUiVolume(value);
     });
     
     // Bind toggles
+    this.bindToggle(panel, '#mute-toggle', () => {
+      const isMuted = audioEngine.toggleMute();
+      // Update the toggle visual state
+      const muteToggle = panel.querySelector('#mute-toggle');
+      if (muteToggle) {
+        muteToggle.classList.toggle('active', isMuted);
+      }
+    });
+    
     this.bindToggle(panel, '#fullscreen-toggle', () => {
       const s = settingsManager.getSettings();
       settingsManager.setFullscreen(!s.fullscreen);

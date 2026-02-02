@@ -333,10 +333,14 @@ export class SceneManager {
 
     // Set weather based on theme
     const weather = WeatherSystem.getWeatherForTheme(theme);
+    console.log(`🌦️ Theme: ${theme} → Weather: ${weather}`);
+    
     if (weather !== WeatherType.NONE) {
       this.weatherSystem.setWeather(weather, 0.6);
+      console.log(`✅ Weather activated: ${weather}`);
     } else {
       this.weatherSystem.setWeather(WeatherType.NONE);
+      console.log(`☀️ No weather (sunny/clear)`);
     }
   }
 

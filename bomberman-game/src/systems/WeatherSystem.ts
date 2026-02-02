@@ -256,12 +256,16 @@ export class WeatherSystem {
     this.currentWeather = weather;
     this.intensity = Math.max(0, Math.min(1, intensity));
 
+    console.log(`🌦️ WeatherSystem.setWeather: ${weather}, intensity: ${this.intensity}`);
+
     this.updateWeatherGeometry();
     this.resetParticles();
     this.updateFireGlow();
 
     // Show/hide accumulation for snow
     this.accumulationMesh.visible = weather === WeatherType.SNOW;
+    
+    console.log(`🌦️ Particle mesh count: ${this.particleMesh.count}, enabled: ${this.enabled}`);
   }
 
   setEnabled(enabled: boolean): void {
@@ -420,6 +424,11 @@ export class WeatherSystem {
 
     const deltaTime = Math.min(dt, 0.05); // Cap delta time for stability
     const activeCount = Math.floor(this.particleCount * this.intensity);
+    
+    // Debug: log first update call
+    if (Math.random() < 0.01) {
+      console.log(`🌦️ Weather update: ${this.currentWeather}, active particles: ${activeCount}, dt: ${dt.toFixed(4)}`);
+    }
 
     // Update particles
     let splashCount = 0;
