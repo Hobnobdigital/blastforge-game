@@ -186,8 +186,8 @@ export class GameController {
     // Apply settings
     this.applySettings();
 
-    // Play gameplay music
-    this.audio.playGameplayMusic();
+    // Play level-specific music
+    this.audio.playLevelMusic(levelId);
 
     // Transition to playing
     this.state.phase = GamePhase.PLAYING;
@@ -268,6 +268,7 @@ export class GameController {
       if (input.placeBomb) {
         if (placeBomb(this.state.base, 0)) {
           this.audio.playBombPlace();
+          this.audio.playFuseTick(); // Play fuse ticking sound
           this.sessionBombsPlaced++;
           settingsManager.incrementBombsPlaced();
         }

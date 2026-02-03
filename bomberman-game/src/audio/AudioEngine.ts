@@ -22,10 +22,13 @@ export class AudioEngine {
     // Music
     'music-menu': '/audio/music-menu.mp3',
     'music-gameplay': '/audio/music-gameplay.mp3',
+    'music-level-1': '/audio/music-level-1.mp3',
+    'music-level-2': '/audio/music-level-2.mp3',
     
     // SFX
     'sfx-bomb-place': '/audio/sfx-bomb-place.mp3',
     'sfx-explosion': '/audio/sfx-explosion.mp3',
+    'sfx-fuse': '/audio/sfx-bomb-place.mp3', // Reuse bomb place for fuse ticking
     'sfx-powerup': '/audio/sfx-powerup.mp3',
     'sfx-enemy-death': '/audio/sfx-enemy-death.mp3',
     'sfx-player-damage': '/audio/sfx-player-damage.mp3',
@@ -104,6 +107,15 @@ export class AudioEngine {
   }
 
   /**
+   * Play level-specific music
+   */
+  playLevelMusic(levelId: number): void {
+    // Cycle between the two new tracks based on level
+    const trackKey = levelId % 2 === 1 ? 'music-level-1' : 'music-level-2';
+    this.playMusicTrack(trackKey);
+  }
+
+  /**
    * Play a music track
    */
   private playMusicTrack(trackKey: string): void {
@@ -179,7 +191,35 @@ export class AudioEngine {
   }
 
   playExplosion(): void {
-    this.playSound('sfx-explosion');
+    // Play explosion at higher volume
+    if (!this.isInitialized) {
+      this.initialize();
+    }
+    
+    if (this.muted) return;
+    
+    const sound = this.sounds['sfx-explosion'];
+    if (sound) {
+      sound.volume(Math.min(1.0, this.sfxVolume * this.masterVolume * 1.5)); // 50% louder
+      sound.play();
+    }
+  }
+
+  /**
+   * Play fuse ticking sound (louder)
+   */
+  playFuseTick(): void {
+    if (!this.isInitialized) {
+      this.initialize();
+    }
+    
+    if (this.muted) return;
+    
+    const sound = this.sounds['sfx-bomb-place'];
+    if (sound) {
+      sound.volume(Math.min(1.0, this.sfxVolume * this.masterVolume * 1.3)); // 30% louder
+      sound.play();
+    }
   }
 
   playPowerUp(): void {
