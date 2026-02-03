@@ -32,9 +32,10 @@ export class SceneManager {
   // Theme manager
   private themeManager: ThemeManager;
 
-  // Background image
-  private backgroundSprite: THREE.Sprite | null = null;
-  private backgroundTexture: THREE.Texture | null = null;
+  // Scrolling background system
+  private scrollingBackgrounds: THREE.Mesh[] = [];
+  private backgroundSpeed = 0.02;
+  private backgroundOffset = 0;
 
   // Shared geometries - bombs scaled up 3x for visibility
   private geoBlock = new THREE.BoxGeometry(TILE_WORLD_SIZE * 0.95, TILE_WORLD_SIZE * 0.95, TILE_WORLD_SIZE * 0.95);
@@ -171,14 +172,22 @@ export class SceneManager {
   }
 
   private animateBackground(deltaTime: number): void {
-    if (this.backgroundSprite) {
-      // Subtle floating animation
-      const time = Date.now() * 0.0005;
-      this.backgroundSprite.position.y = 5 + Math.sin(time) * 0.3;
+    // Scroll backgrounds to create flying effect
+    if (this.scrollingBackgrounds.length >= 2) {
+      this.backgroundOffset += this.backgroundSpeed * deltaTime * 60;
 
-      // Subtle scale pulsing
-      const scalePulse = 1 + Math.sin(time * 0.5) * 0.02;
-      this.backgroundSprite.scale.set(25 * scalePulse, 15 * scalePulse, 1);
+      // Move backgrounds left to create "flying forward" illusion
+      this.scrollingBackgrounds.forEach((bg, index) => {
+        const xOffset = (this.backgroundOffset + index * 45) % 90 - 22.5;
+        bg.position.x = ((GRID_SIZE - 1) / 2) + xOffset;
+
+        // Add subtle vertical bobbing for "flying" feel
+        const time = Date.now() * 0.001;
+        bg.position.y = 8 + Math.sin(time + index) * 0.2;
+
+        // Slight rotation for dynamic feel
+        bg.rotation.z = Math.sin(time * 0.5 + index) * 0.02;
+      });
     }
   }
 
@@ -188,7 +197,7 @@ export class SceneManager {
       const playerId = this.astronautCharacters.length;
       const astronaut = new AstronautCharacter({
         playerId: playerId,
-        scale: 1.0,
+        scale: 1.3, // Larger character for better visibility
       });
       this.scene.add(astronaut.root);
       this.astronautCharacters.push(astronaut);
@@ -380,11 +389,15 @@ export class SceneManager {
       console.log(`☀️ No weather (sunny/clear)`);
     }
 
-    // Load background image for theme
-    this.loadBackgroundImage(theme);
+    // Create scrolling background for theme
+    this.createScrollingBackground(theme);
   }
 
-  private loadBackgroundImage(theme: LevelTheme): void {
+  private createScrollingBackground(theme: LevelTheme): void {
+    // Clear old scrolling backgrounds
+    this.scrollingBackgrounds.forEach(bg => this.scene.remove(bg));
+    this.scrollingBackgrounds = [];
+
     // Map themes to background images
     const themeToImage: Record<LevelTheme, string> = {
       [LevelTheme.CLASSIC]: '/images/backgrounds/bg-classic.png',
@@ -399,43 +412,36 @@ export class SceneManager {
     const imagePath = themeToImage[theme];
     if (!imagePath) return;
 
-    // Remove old background
-    if (this.backgroundSprite) {
-      this.scene.remove(this.backgroundSprite);
-      this.backgroundSprite = null;
-    }
-    if (this.backgroundTexture) {
-      this.backgroundTexture.dispose();
-      this.backgroundTexture = null;
-    }
-
-    // Load new background texture
     const loader = new THREE.TextureLoader();
     loader.load(
       imagePath,
       (texture) => {
-        this.backgroundTexture = texture;
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.ClampToEdgeWrapping;
+        texture.repeat.set(3, 1); // Repeat horizontally
 
-        // Create sprite material
-        const material = new THREE.SpriteMaterial({
+        // Create two background planes for seamless looping
+        const geometry = new THREE.PlaneGeometry(45, 20);
+        const material = new THREE.MeshBasicMaterial({
           map: texture,
           transparent: true,
-          opacity: 0.8,
+          opacity: 0.6,
+          side: THREE.DoubleSide,
         });
 
-        // Create sprite
-        this.backgroundSprite = new THREE.Sprite(material);
-
-        // Position behind the game board
         const center = (GRID_SIZE - 1) / 2;
-        this.backgroundSprite.position.set(center, 5, center - 5);
-        this.backgroundSprite.scale.set(25, 15, 1);
 
-        // Add to scene at the back
-        this.backgroundSprite.renderOrder = -1;
-        this.scene.add(this.backgroundSprite);
+        // Create two background planes side by side for seamless scrolling
+        for (let i = 0; i < 2; i++) {
+          const bg = new THREE.Mesh(geometry, material);
+          bg.position.set(center + (i * 45) - 22.5, 8, center - 12);
+          bg.rotation.x = -0.1; // Slight tilt for depth
+          bg.renderOrder = -10;
+          this.scene.add(bg);
+          this.scrollingBackgrounds.push(bg);
+        }
 
-        console.log(`[SceneManager] ✅ Background image loaded: ${imagePath}`);
+        console.log(`[SceneManager] ✅ Scrolling background created: ${imagePath}`);
       },
       undefined,
       (error) => {
@@ -488,15 +494,15 @@ export class SceneManager {
     }
     this.astronautCharacters = [];
 
-    // Dispose background
-    if (this.backgroundSprite) {
-      this.scene.remove(this.backgroundSprite);
-      this.backgroundSprite = null;
-    }
-    if (this.backgroundTexture) {
-      this.backgroundTexture.dispose();
-      this.backgroundTexture = null;
-    }
+    // Dispose scrolling backgrounds
+    this.scrollingBackgrounds.forEach(bg => {
+      this.scene.remove(bg);
+      bg.geometry.dispose();
+      if (bg.material instanceof THREE.Material) {
+        bg.material.dispose();
+      }
+    });
+    this.scrollingBackgrounds = [];
 
     this.renderer.dispose();
 
