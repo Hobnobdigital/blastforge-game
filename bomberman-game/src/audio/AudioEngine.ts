@@ -35,6 +35,12 @@ export class AudioEngine {
     'sfx-player-damage': '/audio/sfx-player-damage.mp3',
     'sfx-victory': '/audio/sfx-victory.mp3',
     'sfx-defeat': '/audio/sfx-defeat.mp3',
+    
+    // Voice Affirmations
+    'voice-im-the-man': '/audio/voice-im-the-man.mp3',
+    'voice-get-outta-here': '/audio/voice-get-outta-here.mp3',
+    'voice-boom': '/audio/voice-boom.mp3',
+    'voice-no-mercy': '/audio/voice-no-mercy.mp3',
   };
 
   constructor() {
@@ -253,6 +259,39 @@ export class AudioEngine {
       this.playSound('sfx-bomb-place');
     } else {
       this.playSound(soundName);
+    }
+  }
+
+  // ── Voice Affirmations ──
+
+  private voiceAffirmations = [
+    'voice-im-the-man',
+    'voice-get-outta-here',
+    'voice-boom',
+    'voice-no-mercy',
+  ];
+
+  /**
+   * Play a random voice affirmation
+   * 30% chance to play when bricks are destroyed
+   */
+  playRandomAffirmation(): void {
+    if (!this.isInitialized) {
+      this.initialize();
+    }
+
+    if (this.muted) return;
+
+    // 30% chance to play
+    if (Math.random() > 0.3) return;
+
+    const randomIndex = Math.floor(Math.random() * this.voiceAffirmations.length);
+    const voiceKey = this.voiceAffirmations[randomIndex];
+
+    const sound = this.sounds[voiceKey];
+    if (sound) {
+      sound.volume(Math.min(1.0, this.sfxVolume * this.masterVolume * 1.2)); // Slightly louder
+      sound.play();
     }
   }
 

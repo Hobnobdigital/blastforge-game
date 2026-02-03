@@ -55,6 +55,9 @@ export class GameController {
   // Track previous enemy count for death detection
   private previousEnemyCount = 0;
   private playerWasAlive = true;
+  
+  // Track bricks destroyed for voice affirmations
+  private previousSoftBlockCount = 0;
 
   private audioInitialized = false;
 
@@ -167,6 +170,16 @@ export class GameController {
     // Initialize enemy count tracking
     const initialEnemies = (this.state.base as any).enemies || [];
     this.previousEnemyCount = initialEnemies.filter((e: any) => e.alive).length;
+
+    // Initialize soft block count for tracking bricks destroyed
+    this.previousSoftBlockCount = 0;
+    for (let y = 0; y < this.state.base.grid.length; y++) {
+      for (let x = 0; x < this.state.base.grid[y].length; x++) {
+        if (this.state.base.grid[y][x] === TileType.SoftBlock) {
+          this.previousSoftBlockCount++;
+        }
+      }
+    }
 
     // Apply theme and weather
     const themeColors = levelSystem.getThemeColors(levelConfig.theme);
@@ -305,6 +318,9 @@ export class GameController {
     // Track enemy deaths
     this.trackEnemyDeaths();
 
+    // Track bricks destroyed for voice affirmations
+    this.trackBricksDestroyed();
+
     this.checkGameEndConditions();
   }
 
@@ -314,7 +330,7 @@ export class GameController {
   private trackEnemyDeaths(): void {
     const enemies = (this.state.base as any).enemies || [];
     const aliveEnemies = enemies.filter((e: any) => e.alive);
-    
+
     // Check if enemies died since last frame
     if (aliveEnemies.length < this.previousEnemyCount) {
       const deaths = this.previousEnemyCount - aliveEnemies.length;
@@ -324,8 +340,34 @@ export class GameController {
         settingsManager.incrementEnemiesDefeated();
       }
     }
-    
+
     this.previousEnemyCount = aliveEnemies.length;
+  }
+
+  /**
+   * Track bricks destroyed and play voice affirmations
+   */
+  private trackBricksDestroyed(): void {
+    // Count soft blocks (bricks) on the grid
+    let softBlockCount = 0;
+    for (let y = 0; y < this.state.base.grid.length; y++) {
+      for (let x = 0; x < this.state.base.grid[y].length; x++) {
+        if (this.state.base.grid[y][x] === TileType.SoftBlock) {
+          softBlockCount++;
+        }
+      }
+    }
+
+    // If soft blocks decreased, bricks were destroyed
+    if (softBlockCount < this.previousSoftBlockCount) {
+      const destroyed = this.previousSoftBlockCount - softBlockCount;
+      // Play voice affirmation when bricks are destroyed
+      if (destroyed > 0) {
+        this.audio.playRandomAffirmation();
+      }
+    }
+
+    this.previousSoftBlockCount = softBlockCount;
   }
 
   private checkGameEndConditions(): void {

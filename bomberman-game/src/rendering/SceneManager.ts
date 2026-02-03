@@ -32,6 +32,10 @@ export class SceneManager {
   // Theme manager
   private themeManager: ThemeManager;
 
+  // Background image
+  private backgroundSprite: THREE.Sprite | null = null;
+  private backgroundTexture: THREE.Texture | null = null;
+
   // Shared geometries - bombs scaled up 3x for visibility
   private geoBlock = new THREE.BoxGeometry(TILE_WORLD_SIZE * 0.95, TILE_WORLD_SIZE * 0.95, TILE_WORLD_SIZE * 0.95);
   private geoBomb = new THREE.SphereGeometry(0.7, 16, 16);
@@ -161,6 +165,21 @@ export class SceneManager {
     this.syncBombs(state);
     this.syncExplosions(state);
     this.syncPowerUps(state);
+
+    // Animate background
+    this.animateBackground(deltaTime);
+  }
+
+  private animateBackground(deltaTime: number): void {
+    if (this.backgroundSprite) {
+      // Subtle floating animation
+      const time = Date.now() * 0.0005;
+      this.backgroundSprite.position.y = 5 + Math.sin(time) * 0.3;
+
+      // Subtle scale pulsing
+      const scalePulse = 1 + Math.sin(time * 0.5) * 0.02;
+      this.backgroundSprite.scale.set(25 * scalePulse, 15 * scalePulse, 1);
+    }
   }
 
   private syncPlayers(state: GameState, deltaTime: number): void {
@@ -352,7 +371,7 @@ export class SceneManager {
     // Set weather based on theme
     const weather = WeatherSystem.getWeatherForTheme(theme);
     console.log(`🌦️ Theme: ${theme} → Weather: ${weather}`);
-    
+
     if (weather !== WeatherType.NONE) {
       this.weatherSystem.setWeather(weather, 0.6);
       console.log(`✅ Weather activated: ${weather}`);
@@ -360,6 +379,69 @@ export class SceneManager {
       this.weatherSystem.setWeather(WeatherType.NONE);
       console.log(`☀️ No weather (sunny/clear)`);
     }
+
+    // Load background image for theme
+    this.loadBackgroundImage(theme);
+  }
+
+  private loadBackgroundImage(theme: LevelTheme): void {
+    // Map themes to background images
+    const themeToImage: Record<LevelTheme, string> = {
+      [LevelTheme.CLASSIC]: '/images/backgrounds/bg-classic.png',
+      [LevelTheme.ICE]: '/images/backgrounds/bg-ice.png',
+      [LevelTheme.VOLCANO]: '/images/backgrounds/bg-volcano.png',
+      [LevelTheme.FOREST]: '/images/backgrounds/bg-forest.png',
+      [LevelTheme.DESERT]: '/images/backgrounds/bg-desert.png',
+      [LevelTheme.SPACE]: '/images/backgrounds/bg-space.png',
+      [LevelTheme.MIAMI_BEACH]: '/images/backgrounds/bg-miami.png',
+    };
+
+    const imagePath = themeToImage[theme];
+    if (!imagePath) return;
+
+    // Remove old background
+    if (this.backgroundSprite) {
+      this.scene.remove(this.backgroundSprite);
+      this.backgroundSprite = null;
+    }
+    if (this.backgroundTexture) {
+      this.backgroundTexture.dispose();
+      this.backgroundTexture = null;
+    }
+
+    // Load new background texture
+    const loader = new THREE.TextureLoader();
+    loader.load(
+      imagePath,
+      (texture) => {
+        this.backgroundTexture = texture;
+
+        // Create sprite material
+        const material = new THREE.SpriteMaterial({
+          map: texture,
+          transparent: true,
+          opacity: 0.8,
+        });
+
+        // Create sprite
+        this.backgroundSprite = new THREE.Sprite(material);
+
+        // Position behind the game board
+        const center = (GRID_SIZE - 1) / 2;
+        this.backgroundSprite.position.set(center, 5, center - 5);
+        this.backgroundSprite.scale.set(25, 15, 1);
+
+        // Add to scene at the back
+        this.backgroundSprite.renderOrder = -1;
+        this.scene.add(this.backgroundSprite);
+
+        console.log(`[SceneManager] ✅ Background image loaded: ${imagePath}`);
+      },
+      undefined,
+      (error) => {
+        console.warn(`[SceneManager] Failed to load background: ${imagePath}`, error);
+      }
+    );
   }
 
   private updateFloorMaterial(newMaterial: THREE.Material): void {
@@ -405,6 +487,16 @@ export class SceneManager {
       this.scene.remove(astronaut.root);
     }
     this.astronautCharacters = [];
+
+    // Dispose background
+    if (this.backgroundSprite) {
+      this.scene.remove(this.backgroundSprite);
+      this.backgroundSprite = null;
+    }
+    if (this.backgroundTexture) {
+      this.backgroundTexture.dispose();
+      this.backgroundTexture = null;
+    }
 
     this.renderer.dispose();
 
