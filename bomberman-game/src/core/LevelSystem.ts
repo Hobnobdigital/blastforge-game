@@ -137,6 +137,9 @@ export class LevelSystem {
         return { background: 0x050510, floor: 0x2a2a4a, accent: 0xaa88ff };
       case LevelTheme.MIAMI_BEACH:
         return { background: 0xff6b9d, floor: 0xe8c98f, accent: 0x40e0d0 };
+      case LevelTheme.LAHO_VIDEO:
+        // Dark transparent floor for flying carpet effect over video
+        return { background: 0x000000, floor: 0x1a1a2a, accent: 0xffdd00 };
       case LevelTheme.CLASSIC:
       default:
         return { background: 0x0a0a0a, floor: 0x2a2a2a, accent: 0x00aaff };

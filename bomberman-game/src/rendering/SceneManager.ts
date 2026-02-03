@@ -60,6 +60,14 @@ export class SceneManager {
   // Frame timing for weather animation
   private lastFrameTime = 0;
   private frameDeltaTime = 0.016;
+  
+  // Video background mode
+  private videoBackgroundMode = false;
+  
+  // Flying carpet effect
+  private boardGroup: THREE.Group | null = null;
+  private flyingCarpetEnabled = false;
+  private carpetTime = 0;
 
   constructor() {
     this.scene = new THREE.Scene();
@@ -351,7 +359,12 @@ export class SceneManager {
     this.themeManager.update(this.frameDeltaTime);
     
     // Update flying objects for dramatic "flying through air" effect
-    this.flyingObjectsSystem.update(this.frameDeltaTime);
+    if (!this.videoBackgroundMode) {
+      this.flyingObjectsSystem.update(this.frameDeltaTime);
+    }
+    
+    // Update flying carpet effect
+    this.updateFlyingCarpet(this.frameDeltaTime);
 
     // Log scene info every 60 frames (roughly once per second)
     this.frameCount++;
@@ -431,10 +444,11 @@ export class SceneManager {
       [LevelTheme.DESERT]: '/images/backgrounds/bg-desert.png',
       [LevelTheme.SPACE]: '/images/backgrounds/bg-space.png',
       [LevelTheme.MIAMI_BEACH]: '/images/backgrounds/bg-miami.png',
+      [LevelTheme.LAHO_VIDEO]: '', // Video background uses VideoBackgroundSystem
     };
 
     const imagePath = themeToImage[theme];
-    if (!imagePath) return;
+    if (!imagePath) return; // Skip for video themes
 
     const loader = new THREE.TextureLoader();
     loader.load(
@@ -505,6 +519,74 @@ export class SceneManager {
 
   getCurrentTheme(): LevelTheme {
     return this.currentTheme;
+  }
+
+  /**
+   * Enable video background mode - makes scene background transparent
+   * so the HTML video element shows through
+   */
+  enableVideoBackgroundMode(enabled: boolean): void {
+    this.videoBackgroundMode = enabled;
+    
+    if (enabled) {
+      // Make scene background transparent
+      this.scene.background = null;
+      this.renderer.setClearColor(0x000000, 0);
+      
+      // Hide the flying objects system (video is the background)
+      this.flyingObjectsSystem.dispose();
+      
+      // Hide scrolling backgrounds
+      this.scrollingBackgrounds.forEach(bg => {
+        bg.visible = false;
+      });
+      
+      console.log('[SceneManager] 🎬 Video background mode ENABLED');
+    } else {
+      // Restore scene background
+      this.scene.background = new THREE.Color(0x0a0a0a);
+      this.renderer.setClearColor(0x0a0a0a, 1);
+      
+      // Restore scrolling backgrounds
+      this.scrollingBackgrounds.forEach(bg => {
+        bg.visible = true;
+      });
+      
+      console.log('[SceneManager] 🎬 Video background mode DISABLED');
+    }
+  }
+
+  /**
+   * Enable flying carpet effect - makes the board float and bob
+   */
+  enableFlyingCarpetEffect(enabled: boolean): void {
+    this.flyingCarpetEnabled = enabled;
+    console.log(`[SceneManager] 🧞 Flying carpet effect: ${enabled ? 'ENABLED' : 'DISABLED'}`);
+  }
+
+  /**
+   * Update flying carpet animation (call in render loop)
+   */
+  updateFlyingCarpet(deltaTime: number): void {
+    if (!this.flyingCarpetEnabled) return;
+    
+    this.carpetTime += deltaTime;
+    
+    // Subtle floating/bobbing motion
+    const bobAmount = Math.sin(this.carpetTime * 1.5) * 0.15;
+    const tiltX = Math.sin(this.carpetTime * 0.8) * 0.02;
+    const tiltZ = Math.cos(this.carpetTime * 0.6) * 0.02;
+    
+    // Apply to floor and blocks
+    if (this.floorMesh) {
+      this.floorMesh.position.y = -0.01 + bobAmount;
+      this.floorMesh.rotation.x = -Math.PI / 2 + tiltX;
+      this.floorMesh.rotation.z = tiltZ;
+    }
+    
+    // Apply subtle movement to instanced blocks too
+    this.hardBlockPool.position.y = bobAmount;
+    this.softBlockPool.position.y = bobAmount;
   }
 
   dispose(): void {

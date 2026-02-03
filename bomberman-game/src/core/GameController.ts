@@ -38,6 +38,10 @@ import {
   collectPowerUps
 } from '@systems/PowerUpSystem';
 import {
+  getVideoBackgroundSystem,
+  VideoBackgroundSystem
+} from '@systems/VideoBackgroundSystem';
+import {
   updateEnemies,
   checkEnemyPlayerCollision,
   killEnemyAt
@@ -65,6 +69,9 @@ export class GameController {
   private previousSoftBlockCount = 0;
 
   private audioInitialized = false;
+  
+  // Video background system
+  private videoBackground: VideoBackgroundSystem;
 
   constructor() {
     // Initialize core systems
@@ -72,6 +79,7 @@ export class GameController {
     this.scene = new SceneManager();
     this.audio = audioEngine;
     this.hud = new HUD();
+    this.videoBackground = getVideoBackgroundSystem();
 
     // Load settings into audio
     const settings = settingsManager.getSettings();
@@ -191,6 +199,33 @@ export class GameController {
     this.scene.setTheme(levelConfig.theme);
     this.scene.setWeatherEnabled(true);
 
+    // Handle video background if configured
+    if (levelConfig.videoBackground) {
+      console.log(`[GameController] 🎬 Loading video background: ${levelConfig.videoBackground}`);
+      this.videoBackground.loadVideo(levelConfig.videoBackground).then(() => {
+        this.videoBackground.play();
+        this.videoBackground.setVolume(this.state.settings.musicVolume);
+      }).catch(err => {
+        console.error('[GameController] Failed to load video:', err);
+      });
+      
+      // Enable video background mode in scene (transparent background)
+      this.scene.enableVideoBackgroundMode(true);
+      this.scene.enableFlyingCarpetEffect(true);
+      this.videoBackground.setVisible(true);
+      
+      // Don't play regular music if using video audio
+      if (levelConfig.useVideoAudio) {
+        this.audio.stopMusic();
+      }
+    } else {
+      // No video - use regular background
+      this.videoBackground.stop();
+      this.videoBackground.setVisible(false);
+      this.scene.enableVideoBackgroundMode(false);
+      this.scene.enableFlyingCarpetEffect(false);
+    }
+
     // Reset session stats
     this.sessionBombsPlaced = 0;
     this.sessionPowerUpsCollected = 0;
@@ -204,8 +239,10 @@ export class GameController {
     // Apply settings
     this.applySettings();
 
-    // Play level-specific music
-    this.audio.playLevelMusic(levelId);
+    // Play level-specific music (only if not using video audio)
+    if (!levelConfig.useVideoAudio) {
+      this.audio.playLevelMusic(levelId);
+    }
 
     // Transition to playing
     this.state.phase = GamePhase.PLAYING;
@@ -232,6 +269,12 @@ export class GameController {
     // Stop gameplay music and play menu music
     this.audio.stopMusic();
     this.audio.playMenuMusic();
+    
+    // Stop video background if playing
+    this.videoBackground.stop();
+    this.videoBackground.setVisible(false);
+    this.scene.enableVideoBackgroundMode(false);
+    this.scene.enableFlyingCarpetEffect(false);
 
     this.state.phase = GamePhase.MENU;
     this.menuManager.showScreen(MenuScreen.MAIN);

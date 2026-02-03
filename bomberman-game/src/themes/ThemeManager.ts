@@ -49,6 +49,10 @@ export class ThemeManager {
         console.log('[ThemeManager] 🏖️ Creating Miami Beach theme...');
         this.currentTheme = this.createMiamiBeachTheme();
         break;
+      case LevelTheme.LAHO_VIDEO:
+        console.log('[ThemeManager] 🎬 Creating Laho Video theme (flying carpet)...');
+        this.currentTheme = this.createVideoBackgroundTheme();
+        break;
       case LevelTheme.CLASSIC:
       case LevelTheme.ICE:
       case LevelTheme.VOLCANO:
@@ -111,6 +115,67 @@ export class ThemeManager {
       instance: null,
       materials,
     };
+  }
+
+  private createVideoBackgroundTheme(): ActiveTheme {
+    // For video background, we use transparent/semi-transparent materials
+    // to let the video show through
+    
+    // Clear scene background (will show video behind)
+    this.scene.background = null;
+    this.scene.fog = null;
+
+    // Create semi-transparent materials for flying carpet effect
+    const materials: ThemeMaterials = {
+      floor: new THREE.MeshStandardMaterial({
+        color: 0x1a1a2a,
+        roughness: 0.4,
+        metalness: 0.2,
+        transparent: true,
+        opacity: 0.85,
+      }),
+      hardBlock: new THREE.MeshStandardMaterial({
+        color: 0x333344,
+        roughness: 0.5,
+        metalness: 0.3,
+      }),
+      softBlock: new THREE.MeshStandardMaterial({
+        color: 0x4444ff,
+        roughness: 0.4,
+        emissive: 0x111144,
+        emissiveIntensity: 0.3,
+      }),
+    };
+
+    // Setup dramatic lighting for flying carpet
+    this.setupVideoLighting();
+
+    return {
+      name: LevelTheme.LAHO_VIDEO,
+      instance: null,
+      materials,
+    };
+  }
+
+  private setupVideoLighting(): void {
+    // Clear existing lights
+    this.scene.children.filter(c => c instanceof THREE.Light).forEach(l => this.scene.remove(l));
+
+    // Brighter ambient for video level
+    const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+    this.scene.add(ambient);
+
+    // Golden/warm directional light
+    const dirLight = new THREE.DirectionalLight(0xffdd88, 0.8);
+    dirLight.position.set(5, 20, 10);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.set(1024, 1024);
+    this.scene.add(dirLight);
+
+    // Blue rim light from below for magical effect
+    const rimLight = new THREE.DirectionalLight(0x4488ff, 0.4);
+    rimLight.position.set(-5, -5, 0);
+    this.scene.add(rimLight);
   }
 
   private setupBasicLighting(colors: { background: number; accent: number }): void {
