@@ -56,100 +56,10 @@
       pointer-events: none;
     }
     
-    /* Mobile controls */
-    .mobile-controls {
-      display: none;
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
-      z-index: 100;
-    }
-    
-    .d-pad {
-      display: grid;
-      grid-template-columns: 60px 60px 60px;
-      grid-template-rows: 60px 60px;
-      gap: 5px;
-    }
-    
-    .d-btn {
-      width: 60px;
-      height: 60px;
-      background: rgba(255, 255, 255, 0.15);
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      color: white;
-      cursor: pointer;
-      user-select: none;
-      transition: all 0.1s;
-    }
-    
-    .d-btn:active {
-      background: rgba(233, 69, 96, 0.5);
-      transform: scale(0.95);
-    }
-    
-    .d-btn.up { grid-column: 2; }
-    .d-btn.down { grid-column: 2; grid-row: 2; }
-    .d-btn.left { grid-column: 1; grid-row: 2; }
-    .d-btn.right { grid-column: 3; grid-row: 2; }
-    
-    .action-buttons {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    
-    .action-btn {
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      font-size: 14px;
-      font-weight: bold;
-      color: white;
-      cursor: pointer;
-      user-select: none;
-      transition: all 0.1s;
-    }
-    
-    .action-btn.bomb {
-      background: rgba(233, 69, 96, 0.4);
-    }
-    
-    .action-btn.bomb:active {
-      background: rgba(233, 69, 96, 0.7);
-      transform: scale(0.95);
-    }
-    
-    .action-btn.pause {
-      background: rgba(255, 255, 255, 0.15);
-      width: 50px;
-      height: 50px;
-      font-size: 18px;
-    }
-    
     @media (max-width: 768px) {
-      .mobile-controls, .action-buttons {
-        display: flex;
-      }
-      
       #game-info {
         bottom: 160px;
         font-size: 12px;
-      }
-    }
-    
-    @media (pointer: coarse) {
-      .mobile-controls, .action-buttons {
-        display: flex;
       }
     }
   </style>
@@ -161,50 +71,8 @@
     <div id="game-info">BLASTFORGE v1.0 — Press P to pause</div>
   </div>
   
-  <!-- Mobile Controls -->
-  <div class="mobile-controls" id="mobile-controls">
-    <div class="d-pad">
-      <div class="d-btn up" data-key="ArrowUp">▲</div>
-      <div class="d-btn left" data-key="ArrowLeft">◀</div>
-      <div class="d-btn down" data-key="ArrowDown">▼</div>
-      <div class="d-btn right" data-key="ArrowRight">▶</div>
-    </div>
-  </div>
-  
-  <div class="action-buttons" id="action-buttons">
-    <button class="action-btn pause" data-key="KeyP">⏸</button>
-    <button class="action-btn bomb" data-key="Space">💣</button>
-  </div>
+  <!-- Touch controls are created dynamically by TouchController.ts -->
   
   <script type="module" src="/src/main.ts"></script>
-  
-  <script>
-    // Mobile touch handling
-    document.querySelectorAll('.d-btn, .action-btn').forEach(btn => {
-      const key = btn.getAttribute('data-key');
-      
-      btn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        window.dispatchEvent(new KeyboardEvent('keydown', { code: key }));
-      });
-      
-      btn.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        window.dispatchEvent(new KeyboardEvent('keyup', { code: key }));
-      });
-      
-      btn.addEventListener('mousedown', (e) => {
-        window.dispatchEvent(new KeyboardEvent('keydown', { code: key }));
-      });
-      
-      btn.addEventListener('mouseup', (e) => {
-        window.dispatchEvent(new KeyboardEvent('keyup', { code: key }));
-      });
-      
-      btn.addEventListener('mouseleave', (e) => {
-        window.dispatchEvent(new KeyboardEvent('keyup', { code: key }));
-      });
-    });
-  </script>
 </body>
 </html>
