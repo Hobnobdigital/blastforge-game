@@ -24,6 +24,7 @@ export class AudioEngine {
     'music-gameplay': '/audio/music-gameplay.mp3',
     'music-level-1': '/audio/music-level-1.mp3',
     'music-level-2': '/audio/music-level-2.mp3',
+    'music-level-3': '/audio/music-level-3.mp3',
     
     // SFX
     'sfx-bomb-place': '/audio/sfx-bomb-place.mp3',
@@ -110,8 +111,9 @@ export class AudioEngine {
    * Play level-specific music
    */
   playLevelMusic(levelId: number): void {
-    // Cycle between the two new tracks based on level
-    const trackKey = levelId % 2 === 1 ? 'music-level-1' : 'music-level-2';
+    // Cycle through all 3 tracks based on level
+    const trackNum = ((levelId - 1) % 3) + 1;
+    const trackKey = `music-level-${trackNum}` as const;
     this.playMusicTrack(trackKey);
   }
 
