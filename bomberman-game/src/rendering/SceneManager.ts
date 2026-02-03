@@ -40,11 +40,10 @@ export class SceneManager {
   private backgroundOffset = 0;
 
   // Shared geometries - bombs scaled up 3x for visibility
-  // All geometries scaled by TILE_WORLD_SIZE for consistent larger appearance
   private geoBlock = new THREE.BoxGeometry(TILE_WORLD_SIZE * 0.95, TILE_WORLD_SIZE * 0.95, TILE_WORLD_SIZE * 0.95);
-  private geoBomb = new THREE.SphereGeometry(TILE_WORLD_SIZE * 0.45, 16, 16); // Bigger bombs
-  private geoExplosion = new THREE.BoxGeometry(TILE_WORLD_SIZE * 0.9, TILE_WORLD_SIZE * 0.25, TILE_WORLD_SIZE * 0.9);
-  private geoPowerUp = new THREE.BoxGeometry(TILE_WORLD_SIZE * 0.35, TILE_WORLD_SIZE * 0.35, TILE_WORLD_SIZE * 0.35);
+  private geoBomb = new THREE.SphereGeometry(0.7, 16, 16);
+  private geoExplosion = new THREE.BoxGeometry(TILE_WORLD_SIZE * 0.9, 0.3, TILE_WORLD_SIZE * 0.9);
+  private geoPowerUp = new THREE.BoxGeometry(0.4, 0.4, 0.4);
 
   private dummy = new THREE.Object3D();
   
@@ -83,16 +82,14 @@ export class SceneManager {
     this.matSoft = new THREE.MeshStandardMaterial({ color: 0x8b6914 });
 
     // Camera — perspective camera positioned to see entire board
-    // Account for TILE_WORLD_SIZE scaling
-    const center = (GRID_SIZE - 1) / 2 * TILE_WORLD_SIZE;
+    const center = (GRID_SIZE - 1) / 2;
     this.camera = new THREE.PerspectiveCamera(
-      55, // FOV adjusted for larger tiles
+      60,
       window.innerWidth / window.innerHeight,
       0.1,
-      300
+      200
     );
-    // Position camera higher and further back for larger board
-    this.camera.position.set(center, 28 * TILE_WORLD_SIZE, center + 20 * TILE_WORLD_SIZE);
+    this.camera.position.set(center, 22, center + 16);
     this.camera.lookAt(center, 0, center);
 
     // Renderer — graceful fallback when WebGL is unavailable
@@ -121,21 +118,20 @@ export class SceneManager {
     this.scene.add(ambient);
 
     const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    dirLight.position.set(center + 5 * TILE_WORLD_SIZE, 20 * TILE_WORLD_SIZE, center - 5 * TILE_WORLD_SIZE);
+    dirLight.position.set(center + 5, 15, center - 5);
     dirLight.castShadow = true;
-    dirLight.shadow.mapSize.set(2048, 2048); // Higher res shadows for larger board
+    dirLight.shadow.mapSize.set(1024, 1024);
     dirLight.shadow.camera.near = 1;
-    dirLight.shadow.camera.far = 60 * TILE_WORLD_SIZE;
-    const s = GRID_SIZE * TILE_WORLD_SIZE;
+    dirLight.shadow.camera.far = 40;
+    const s = GRID_SIZE;
     dirLight.shadow.camera.left = -s;
     dirLight.shadow.camera.right = s;
     dirLight.shadow.camera.top = s;
     dirLight.shadow.camera.bottom = -s;
     this.scene.add(dirLight);
 
-    // Floor plane - scaled for larger tiles
-    const floorSize = GRID_SIZE * TILE_WORLD_SIZE;
-    const floorGeo = new THREE.PlaneGeometry(floorSize, floorSize);
+    // Floor plane
+    const floorGeo = new THREE.PlaneGeometry(GRID_SIZE, GRID_SIZE);
     this.floorMesh = new THREE.Mesh(floorGeo, this.matFloor);
     this.floorMesh.rotation.x = -Math.PI / 2;
     this.floorMesh.position.set(center, -0.01, center);

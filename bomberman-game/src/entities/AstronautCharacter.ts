@@ -83,7 +83,7 @@ export class AstronautCharacter {
   
   // Configuration
   private readonly config: Required<AstronautConfig>;
-  private readonly baseScale: number = 1.5; // Larger character for better visibility
+  private readonly baseScale: number = 1.0;
   
   // Constants for proportions (chibi style - big head, small body)
   private readonly HELMET_RADIUS = 0.45; // 60% of visual height
