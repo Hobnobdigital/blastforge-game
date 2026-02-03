@@ -1,5 +1,6 @@
 import { Direction } from '../core/types';
 import type { ExtendedInputState } from '../core/ExtendedTypes';
+import { TouchController, TouchState } from './TouchController';
 
 export class InputManager {
   private keys: Set<string> = new Set();
@@ -7,8 +8,16 @@ export class InputManager {
   private pausePressed = false;
   private anyKeyPressed = false;
   private pauseCallback: (() => void) | null = null;
+  
+  // Touch controller for mobile
+  private touchController: TouchController;
+  private lastTouchBombState = false;
+  private touchBombPressed = false;
 
   constructor() {
+    // Initialize touch controller
+    this.touchController = new TouchController();
+    
     window.addEventListener('keydown', (e) => {
       this.keys.add(e.code);
       if (e.code === 'Space') this.bombPressed = true;
@@ -29,17 +38,41 @@ export class InputManager {
   }
 
   poll(): ExtendedInputState {
-    const dir = this.getDirection();
+    // Get keyboard direction
+    const keyDir = this.getDirection();
+    
+    // Get touch state
+    const touchState = this.touchController.getState();
+    const touchDir = this.touchController.convertJoystickToDirection();
+    
+    // Check for touch bomb button press (edge detection)
+    if (touchState.bombButton && !this.lastTouchBombState) {
+      this.touchBombPressed = true;
+    }
+    this.lastTouchBombState = touchState.bombButton;
+    
+    // Combine keyboard and touch input (touch overrides if active)
     let moveDir = Direction.None;
-    if (dir.x < 0) moveDir = Direction.Left;
-    else if (dir.x > 0) moveDir = Direction.Right;
-    else if (dir.y < 0) moveDir = Direction.Up;
-    else if (dir.y > 0) moveDir = Direction.Down;
+    
+    if (touchState.joystick.active) {
+      moveDir = touchDir;
+    } else {
+      if (keyDir.x < 0) moveDir = Direction.Left;
+      else if (keyDir.x > 0) moveDir = Direction.Right;
+      else if (keyDir.y < 0) moveDir = Direction.Up;
+      else if (keyDir.y > 0) moveDir = Direction.Down;
+    }
+    
+    // Get fuse action from touch or keyboard
+    let fuseAction: 'prime' | 'rush' | 'detonate' | null = null;
+    if (touchState.fuseButtons.prime || this.keys.has('KeyQ')) fuseAction = 'prime';
+    else if (touchState.fuseButtons.rush || this.keys.has('KeyE')) fuseAction = 'rush';
+    else if (touchState.fuseButtons.detonate || this.keys.has('KeyR')) fuseAction = 'detonate';
 
     return {
       moveDir,
       placeBomb: this.consumeBomb(),
-      fuseAction: null,
+      fuseAction,
       pause: this.consumePause(),
       menuBack: this.keys.has('Escape'),
       menuSelect: this.keys.has('Enter') || this.keys.has('Space'),
@@ -61,8 +94,14 @@ export class InputManager {
   }
 
   consumeBomb(): boolean {
+    // Check keyboard bomb
     if (this.bombPressed) {
       this.bombPressed = false;
+      return true;
+    }
+    // Check touch bomb (edge-triggered)
+    if (this.touchBombPressed) {
+      this.touchBombPressed = false;
       return true;
     }
     return false;
@@ -82,5 +121,19 @@ export class InputManager {
       return true;
     }
     return false;
+  }
+  
+  /**
+   * Get touch controller for direct access if needed
+   */
+  getTouchController(): TouchController {
+    return this.touchController;
+  }
+  
+  /**
+   * Check if touch is available
+   */
+  isTouchEnabled(): boolean {
+    return this.touchController.isTouchEnabled();
   }
 }

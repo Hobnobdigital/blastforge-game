@@ -1,6 +1,6 @@
 // ── Core types for BLASTFORGE ──
 
-export const GRID_SIZE = 13;
+export const GRID_SIZE = 17; // Larger board for more strategic gameplay
 export const TILE_WORLD_SIZE = 1.0;
 export const SIM_RATE = 60;
 export const SIM_DT = 1 / SIM_RATE;

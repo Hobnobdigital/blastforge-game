@@ -16,6 +16,11 @@ export class AudioEngine {
   
   private isInitialized = false;
   private muted = false;
+  
+  // Web Audio context for procedural sounds
+  private audioContext: AudioContext | null = null;
+  private activeTicks: Map<number, { interval: number; timeout: number }> = new Map();
+  private tickIdCounter = 0;
 
   // Sound file paths
   private readonly soundPaths = {
@@ -219,20 +224,139 @@ export class AudioEngine {
   }
 
   /**
-   * Play fuse ticking sound (louder)
+   * Play fuse ticking sound (louder) - starts continuous ticking
+   * Returns a tick ID that can be used to stop the ticking
    */
-  playFuseTick(): void {
+  playFuseTick(): number {
     if (!this.isInitialized) {
       this.initialize();
     }
     
-    if (this.muted) return;
+    if (this.muted) return -1;
     
-    const sound = this.sounds['sfx-bomb-place'];
-    if (sound) {
-      sound.volume(Math.min(1.0, this.sfxVolume * this.masterVolume * 1.3)); // 30% louder
-      sound.play();
+    // Initialize audio context if needed
+    if (!this.audioContext) {
+      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     }
+    
+    const tickId = ++this.tickIdCounter;
+    
+    // Play immediate tick
+    this.playProceduralTick(1.0);
+    
+    // Start continuous ticking that speeds up
+    let tickSpeed = 300; // Start at 300ms between ticks
+    let tickCount = 0;
+    
+    const doTick = () => {
+      if (!this.activeTicks.has(tickId)) return;
+      
+      tickCount++;
+      // Speed up ticking as bomb nears explosion
+      const urgency = Math.min(tickCount / 10, 1.5);
+      this.playProceduralTick(0.6 + urgency * 0.4);
+      
+      // Accelerate tick rate
+      tickSpeed = Math.max(80, tickSpeed * 0.85);
+      
+      const nextTimeout = window.setTimeout(doTick, tickSpeed);
+      this.activeTicks.set(tickId, { 
+        interval: this.activeTicks.get(tickId)?.interval || 0, 
+        timeout: nextTimeout 
+      });
+    };
+    
+    const timeout = window.setTimeout(doTick, tickSpeed);
+    this.activeTicks.set(tickId, { interval: 0, timeout });
+    
+    // Auto-stop after 3 seconds (bomb explodes)
+    window.setTimeout(() => this.stopFuseTick(tickId), 3000);
+    
+    return tickId;
+  }
+  
+  /**
+   * Stop a specific fuse tick
+   */
+  stopFuseTick(tickId: number): void {
+    const tick = this.activeTicks.get(tickId);
+    if (tick) {
+      window.clearTimeout(tick.timeout);
+      window.clearInterval(tick.interval);
+      this.activeTicks.delete(tickId);
+    }
+  }
+  
+  /**
+   * Stop all fuse ticks
+   */
+  stopAllFuseTicks(): void {
+    this.activeTicks.forEach((tick, id) => {
+      window.clearTimeout(tick.timeout);
+      window.clearInterval(tick.interval);
+    });
+    this.activeTicks.clear();
+  }
+  
+  /**
+   * Play a single procedural tick sound using Web Audio API
+   */
+  private playProceduralTick(volume: number = 1.0): void {
+    if (!this.audioContext || this.muted) return;
+    
+    const ctx = this.audioContext;
+    const now = ctx.currentTime;
+    
+    // Resume context if suspended (browser autoplay policy)
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+    
+    // Create oscillator for the tick click
+    const osc = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    const filterNode = ctx.createBiquadFilter();
+    
+    // Sharp click sound
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(1200, now);
+    osc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
+    
+    // Filter for metallic quality
+    filterNode.type = 'bandpass';
+    filterNode.frequency.setValueAtTime(2000, now);
+    filterNode.Q.setValueAtTime(5, now);
+    
+    // Sharp attack, quick decay
+    const actualVolume = volume * this.sfxVolume * this.masterVolume * 0.4;
+    gainNode.gain.setValueAtTime(0, now);
+    gainNode.gain.linearRampToValueAtTime(actualVolume, now + 0.005);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+    
+    // Connect: osc -> filter -> gain -> output
+    osc.connect(filterNode);
+    filterNode.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    
+    osc.start(now);
+    osc.stop(now + 0.1);
+    
+    // Add a lower "thud" for more presence
+    const thudOsc = ctx.createOscillator();
+    const thudGain = ctx.createGain();
+    
+    thudOsc.type = 'sine';
+    thudOsc.frequency.setValueAtTime(80, now);
+    thudOsc.frequency.exponentialRampToValueAtTime(40, now + 0.05);
+    
+    thudGain.gain.setValueAtTime(actualVolume * 0.8, now);
+    thudGain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+    
+    thudOsc.connect(thudGain);
+    thudGain.connect(ctx.destination);
+    
+    thudOsc.start(now);
+    thudOsc.stop(now + 0.15);
   }
 
   playPowerUp(): void {
