@@ -66,7 +66,7 @@ function createPlayer(id: number, gridPos: { col: number; row: number }): Player
     moveDir: Direction.None,
     speed: 3.5,
     bombRange: 2,
-    maxBombs: 1,
+    maxBombs: 99, // Unlimited bombs - drop as many as you want!
     activeBombs: 0,
     fuseCharges: 3,
     alive: true,

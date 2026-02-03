@@ -2,9 +2,17 @@ import * as THREE from 'three';
 import { TILE_WORLD_SIZE } from '@core/types';
 import { EnemyState, EnemyType } from '@core/ExtendedTypes';
 
+interface DyingEnemy {
+  mesh: THREE.Group;
+  particles: THREE.Points;
+  timeLeft: number;
+  position: THREE.Vector3;
+}
+
 export class EnemyRenderer {
   private scene: THREE.Scene;
   private enemyMeshes: Map<number, THREE.Group> = new Map();
+  private dyingEnemies: DyingEnemy[] = [];
   
   // Enemy colors by type
   private readonly enemyColors = {
@@ -21,10 +29,13 @@ export class EnemyRenderer {
   syncEnemies(enemies: EnemyState[], deltaTime: number): void {
     const activeIds = new Set(enemies.map(e => e.id));
     
-    // Remove stale enemies
+    // Update dying enemies (disintegration effect)
+    this.updateDyingEnemies(deltaTime);
+    
+    // Remove stale enemies - trigger disintegration!
     for (const [id, mesh] of this.enemyMeshes) {
       if (!activeIds.has(id)) {
-        this.scene.remove(mesh);
+        this.triggerDisintegration(mesh);
         this.enemyMeshes.delete(id);
       }
     }
@@ -169,11 +180,112 @@ export class EnemyRenderer {
     return group;
   }
 
+  /**
+   * Trigger disintegration effect when enemy dies
+   */
+  private triggerDisintegration(mesh: THREE.Group): void {
+    const position = mesh.position.clone();
+    
+    // Create particle explosion
+    const particleCount = 50;
+    const positions = new Float32Array(particleCount * 3);
+    const velocities: THREE.Vector3[] = [];
+    const colors = new Float32Array(particleCount * 3);
+    
+    // Get color from mesh
+    let color = new THREE.Color(0xff4444);
+    mesh.traverse((child) => {
+      if (child instanceof THREE.Mesh && child.material instanceof THREE.MeshStandardMaterial) {
+        color = new THREE.Color(child.material.color);
+      }
+    });
+    
+    for (let i = 0; i < particleCount; i++) {
+      // Random position around the enemy
+      positions[i * 3] = position.x + (Math.random() - 0.5) * 0.5;
+      positions[i * 3 + 1] = position.y + Math.random() * 0.5;
+      positions[i * 3 + 2] = position.z + (Math.random() - 0.5) * 0.5;
+      
+      // Random velocity - explode outward
+      velocities.push(new THREE.Vector3(
+        (Math.random() - 0.5) * 4,
+        Math.random() * 5 + 2,
+        (Math.random() - 0.5) * 4
+      ));
+      
+      // Color with slight variation
+      colors[i * 3] = color.r + (Math.random() - 0.5) * 0.2;
+      colors[i * 3 + 1] = color.g + (Math.random() - 0.5) * 0.2;
+      colors[i * 3 + 2] = color.b + (Math.random() - 0.5) * 0.2;
+    }
+    
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    
+    const material = new THREE.PointsMaterial({
+      size: 0.15,
+      vertexColors: true,
+      transparent: true,
+      opacity: 1,
+    });
+    
+    const particles = new THREE.Points(geometry, material);
+    (particles as any).velocities = velocities;
+    this.scene.add(particles);
+    
+    // Remove original mesh
+    this.scene.remove(mesh);
+    
+    // Track dying enemy for animation
+    this.dyingEnemies.push({
+      mesh,
+      particles,
+      timeLeft: 1.0, // 1 second animation
+      position
+    });
+  }
+  
+  /**
+   * Update disintegration animations
+   */
+  private updateDyingEnemies(deltaTime: number): void {
+    for (let i = this.dyingEnemies.length - 1; i >= 0; i--) {
+      const dying = this.dyingEnemies[i];
+      dying.timeLeft -= deltaTime;
+      
+      // Update particle positions
+      const positions = dying.particles.geometry.getAttribute('position');
+      const velocities = (dying.particles as any).velocities as THREE.Vector3[];
+      
+      for (let j = 0; j < positions.count; j++) {
+        positions.setX(j, positions.getX(j) + velocities[j].x * deltaTime);
+        positions.setY(j, positions.getY(j) + velocities[j].y * deltaTime);
+        positions.setZ(j, positions.getZ(j) + velocities[j].z * deltaTime);
+        
+        // Apply gravity
+        velocities[j].y -= 15 * deltaTime;
+      }
+      positions.needsUpdate = true;
+      
+      // Fade out
+      const material = dying.particles.material as THREE.PointsMaterial;
+      material.opacity = Math.max(0, dying.timeLeft);
+      
+      // Remove when done
+      if (dying.timeLeft <= 0) {
+        this.scene.remove(dying.particles);
+        dying.particles.geometry.dispose();
+        (dying.particles.material as THREE.Material).dispose();
+        this.dyingEnemies.splice(i, 1);
+      }
+    }
+  }
+
   removeEnemy(id: number): void {
     const mesh = this.enemyMeshes.get(id);
     if (mesh) {
-      // Death animation - could be expanded
-      this.scene.remove(mesh);
+      this.triggerDisintegration(mesh);
       this.enemyMeshes.delete(id);
     }
   }
@@ -183,5 +295,13 @@ export class EnemyRenderer {
       this.scene.remove(mesh);
     }
     this.enemyMeshes.clear();
+    
+    // Clean up dying enemies
+    for (const dying of this.dyingEnemies) {
+      this.scene.remove(dying.particles);
+      dying.particles.geometry.dispose();
+      (dying.particles.material as THREE.Material).dispose();
+    }
+    this.dyingEnemies = [];
   }
 }
