@@ -25,6 +25,7 @@ export class AudioEngine {
     'music-level-1': '/audio/music-level-1.mp3',
     'music-level-2': '/audio/music-level-2.mp3',
     'music-level-3': '/audio/music-level-3.mp3',
+    'music-level-4': '/audio/music-level-4.mp3', // O'Kenneth - YIMAYƐ
     
     // SFX
     'sfx-bomb-place': '/audio/sfx-bomb-place.mp3',
@@ -121,8 +122,8 @@ export class AudioEngine {
    * Play level-specific music
    */
   playLevelMusic(levelId: number): void {
-    // Cycle through all 3 tracks based on level
-    const trackNum = ((levelId - 1) % 3) + 1;
+    // Cycle through all 4 tracks based on level
+    const trackNum = ((levelId - 1) % 4) + 1;
     const trackKey = `music-level-${trackNum}` as const;
     this.playMusicTrack(trackKey);
   }
