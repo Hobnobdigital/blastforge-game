@@ -37,6 +37,11 @@ import {
 import {
   collectPowerUps
 } from '@systems/PowerUpSystem';
+import {
+  updateEnemies,
+  checkEnemyPlayerCollision,
+  killEnemyAt
+} from '@systems/EnemySystem';
 
 export class GameController {
   private state: ExtendedGameState;
@@ -303,6 +308,19 @@ export class GameController {
       spawnExplosion(this.state.base, pos, this.state.base.players[0]?.bombRange ?? 2);
       console.log('[GameController] Bomb exploded, playing sound');
       this.audio.playExplosion();
+      
+      // Check if explosion kills any enemies
+      const enemies = (this.state.base as any).enemies || [];
+      for (const enemy of enemies) {
+        if (enemy.alive && enemy.gridPos.col === pos.col && enemy.gridPos.row === pos.row) {
+          killEnemyAt(this.state.base, pos);
+        }
+      }
+    }
+    
+    // Check explosions hitting enemies
+    for (const explosion of this.state.base.explosions) {
+      killEnemyAt(this.state.base, explosion.gridPos);
     }
 
     tickExplosions(this.state.base, dt);
@@ -314,6 +332,21 @@ export class GameController {
       settingsManager.incrementPowerUpsCollected();
       settingsManager.vibrate(50);
     }
+    
+    // Update enemies - move them toward the player slowly
+    if (player?.alive) {
+      updateEnemies(this.state.base, player.gridPos, dt);
+      
+      // Check for enemy-player collision
+      if (checkEnemyPlayerCollision(this.state.base, player.worldPos)) {
+        player.alive = false;
+        console.log('[GameController] Player hit by enemy!');
+      }
+    }
+    
+    // Sync enemies with the scene for rendering
+    const enemies = (this.state.base as any).enemies || [];
+    this.scene.syncEnemies(enemies, dt);
 
     // Track enemy deaths
     this.trackEnemyDeaths();
@@ -378,10 +411,18 @@ export class GameController {
       return;
     }
 
-    const enemies = (this.state.base as any).enemies || [];
-    const aliveEnemies = enemies.filter((e: any) => e.alive);
-
-    if (aliveEnemies.length === 0 && enemies.length > 0) {
+    // Count remaining soft blocks
+    let softBlockCount = 0;
+    for (let y = 0; y < this.state.base.grid.length; y++) {
+      for (let x = 0; x < this.state.base.grid[y].length; x++) {
+        if (this.state.base.grid[y][x] === TileType.SoftBlock) {
+          softBlockCount++;
+        }
+      }
+    }
+    
+    // Level complete when ALL soft blocks are destroyed
+    if (softBlockCount === 0) {
       this.handleVictory();
       return;
     }
@@ -393,19 +434,44 @@ export class GameController {
     const levelTime = Math.floor((Date.now() - this.state.levelStartTime - this.state.totalPauseTime) / 1000);
 
     settingsManager.recordWin(this.state.currentLevel, levelTime);
-    settingsManager.vibrate([100, 50, 100]);
+    settingsManager.vibrate([100, 50, 100, 50, 200]); // Big celebration vibration!
 
-    // Play victory sound and stop gameplay music
+    // Play LOUD level complete sound
     this.audio.stopMusic();
+    this.audio.playLevelComplete();
     this.audio.playVictory();
 
-    this.menuManager.showGameOver(true, {
-      time: levelTime,
-      bombs: this.sessionBombsPlaced,
-      powerUps: this.sessionPowerUpsCollected,
-    });
-
-    console.log(`Victory! Level ${this.state.currentLevel} completed in ${levelTime}s`);
+    // Check if there's a next level
+    const nextLevel = levelSystem.getNextLevel();
+    
+    if (nextLevel) {
+      // Show level transition screen, then auto-progress
+      console.log(`🎉 LEVEL ${this.state.currentLevel} COMPLETE! Advancing to Level ${nextLevel.id}...`);
+      
+      this.menuManager.showGameOver(true, {
+        time: levelTime,
+        bombs: this.sessionBombsPlaced,
+        powerUps: this.sessionPowerUpsCollected,
+      });
+      
+      // Auto-advance to next level after delay
+      setTimeout(() => {
+        if (this.state.phase === GamePhase.VICTORY) {
+          levelSystem.progressToNext();
+          this.startGame(nextLevel.id);
+        }
+      }, 3000); // 3 second delay before next level
+      
+    } else {
+      // Game complete - all levels finished!
+      console.log(`🏆 GAME COMPLETE! All levels finished in ${levelTime}s total`);
+      
+      this.menuManager.showGameOver(true, {
+        time: levelTime,
+        bombs: this.sessionBombsPlaced,
+        powerUps: this.sessionPowerUpsCollected,
+      });
+    }
   }
 
   private handleDefeat(): void {

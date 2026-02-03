@@ -41,6 +41,10 @@ export class AudioEngine {
     'voice-get-outta-here': '/audio/voice-get-outta-here.mp3',
     'voice-boom': '/audio/voice-boom.mp3',
     'voice-no-mercy': '/audio/voice-no-mercy.mp3',
+    
+    // Level transition sounds
+    'sfx-level-complete': '/audio/sfx-victory.mp3', // Reuse victory for level complete
+    'sfx-level-start': '/audio/sfx-powerup.mp3', // Reuse powerup for level start
   };
 
   constructor() {
@@ -248,6 +252,40 @@ export class AudioEngine {
 
   playDefeat(): void {
     this.playSound('sfx-defeat');
+  }
+  
+  /**
+   * Play level complete celebration sound (LOUD!)
+   */
+  playLevelComplete(): void {
+    if (!this.isInitialized) {
+      this.initialize();
+    }
+    
+    if (this.muted) return;
+    
+    const sound = this.sounds['sfx-level-complete'];
+    if (sound) {
+      sound.volume(Math.min(1.0, this.sfxVolume * this.masterVolume * 1.8)); // Much louder!
+      sound.play();
+    }
+  }
+  
+  /**
+   * Play level start fanfare
+   */
+  playLevelStart(): void {
+    if (!this.isInitialized) {
+      this.initialize();
+    }
+    
+    if (this.muted) return;
+    
+    const sound = this.sounds['sfx-level-start'];
+    if (sound) {
+      sound.volume(Math.min(1.0, this.sfxVolume * this.masterVolume * 1.3));
+      sound.play();
+    }
   }
 
   /**

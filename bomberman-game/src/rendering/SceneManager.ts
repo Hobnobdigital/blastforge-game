@@ -2,7 +2,9 @@ import * as THREE from 'three';
 import { GameState, TileType, GRID_SIZE, TILE_WORLD_SIZE } from '@core/types';
 import { AstronautCharacter, AstronautAnimationState } from '@entities/AstronautCharacter';
 import { WeatherSystem, WeatherType } from '@systems/WeatherSystem';
-import { LevelTheme } from '@core/ExtendedTypes';
+import { FlyingObjectsSystem } from '@systems/FlyingObjectsSystem';
+import { EnemyRenderer } from '@systems/EnemyRenderer';
+import { LevelTheme, EnemyState } from '@core/ExtendedTypes';
 import { ThemeManager, ThemeMaterials } from '@themes/ThemeManager';
 
 export class SceneManager {
@@ -48,6 +50,12 @@ export class SceneManager {
   // Weather system
   private weatherSystem: WeatherSystem;
   private currentTheme: LevelTheme = LevelTheme.CLASSIC;
+  
+  // Flying objects system for dramatic effect
+  private flyingObjectsSystem: FlyingObjectsSystem;
+  
+  // Enemy renderer
+  private enemyRenderer: EnemyRenderer;
 
   // Frame timing for weather animation
   private lastFrameTime = 0;
@@ -136,6 +144,12 @@ export class SceneManager {
 
     // Initialize weather system
     this.weatherSystem = new WeatherSystem(this.scene);
+    
+    // Initialize flying objects system
+    this.flyingObjectsSystem = new FlyingObjectsSystem(this.scene);
+    
+    // Initialize enemy renderer
+    this.enemyRenderer = new EnemyRenderer(this.scene);
   }
 
   syncState(state: GameState, _alpha: number, deltaTime: number = 0.016): void {
@@ -335,6 +349,9 @@ export class SceneManager {
 
     // Update theme animations (water waves, palm trees, etc.)
     this.themeManager.update(this.frameDeltaTime);
+    
+    // Update flying objects for dramatic "flying through air" effect
+    this.flyingObjectsSystem.update(this.frameDeltaTime);
 
     // Log scene info every 60 frames (roughly once per second)
     this.frameCount++;
@@ -343,6 +360,10 @@ export class SceneManager {
     }
 
     this.renderer.render(this.scene, this.camera);
+  }
+  
+  syncEnemies(enemies: EnemyState[], deltaTime: number): void {
+    this.enemyRenderer.syncEnemies(enemies, deltaTime);
   }
 
   // Weather control methods
@@ -364,6 +385,9 @@ export class SceneManager {
 
     // Load theme through ThemeManager
     this.themeManager.loadTheme(theme);
+    
+    // Update flying objects for this theme (creates theme-appropriate sky and objects)
+    this.flyingObjectsSystem.setTheme(theme);
 
     // Get theme materials
     const themeMaterials = this.themeManager.getMaterials();
@@ -486,6 +510,8 @@ export class SceneManager {
   dispose(): void {
     this.weatherSystem.dispose();
     this.themeManager.dispose();
+    this.flyingObjectsSystem.dispose();
+    this.enemyRenderer.dispose();
 
     // Dispose astronaut characters
     for (const astronaut of this.astronautCharacters) {
