@@ -9,6 +9,9 @@ export interface TouchState {
   fuseButtons: { prime: boolean; rush: boolean; detonate: boolean };
 }
 
+// Singleton instance to prevent duplicate controls
+let touchControllerInstance: TouchController | null = null;
+
 /**
  * TouchController - Simple touch controls for mobile
  * 
@@ -16,6 +19,7 @@ export interface TouchState {
  * - D-pad style buttons for movement (left side)
  * - Large bomb button (right side)
  * - Clean, obvious UI
+ * - Singleton pattern to prevent duplicates
  */
 export class TouchController {
   private state: TouchState = {
@@ -25,21 +29,38 @@ export class TouchController {
   };
 
   private overlay: HTMLElement | null = null;
-  private isTouchDevice: boolean;
+  private isTouchDevice: boolean = false;
   private activeDirections: Set<Direction> = new Set();
 
   constructor() {
+    // Return existing instance if already created (singleton)
+    if (touchControllerInstance) {
+      this.isTouchDevice = touchControllerInstance.isTouchDevice;
+      this.state = touchControllerInstance.state;
+      this.overlay = touchControllerInstance.overlay;
+      this.activeDirections = touchControllerInstance.activeDirections;
+      return;
+    }
+    
     this.isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     
     if (this.isTouchDevice) {
       this.createTouchUI();
     }
+    
+    touchControllerInstance = this;
   }
 
   /**
    * Create simple touch UI with D-pad and bomb button
    */
   private createTouchUI(): void {
+    // Remove any existing touch controls first (prevent duplicates)
+    const existing = document.getElementById('touch-controls');
+    if (existing) {
+      existing.remove();
+    }
+    
     // Create main overlay container
     this.overlay = document.createElement('div');
     this.overlay.id = 'touch-controls';
