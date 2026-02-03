@@ -95,7 +95,11 @@ export class SceneManager {
 
     // Renderer — graceful fallback when WebGL is unavailable
     try {
-      this.renderer = new THREE.WebGLRenderer({ antialias: true });
+      this.renderer = new THREE.WebGLRenderer({ 
+        antialias: true, 
+        alpha: true,  // Enable transparency for video background
+        premultipliedAlpha: false 
+      });
     } catch (error) {
       SceneManager.showWebGLError();
       throw new Error('WebGL initialization failed: ' + (error instanceof Error ? error.message : String(error)));
@@ -104,6 +108,10 @@ export class SceneManager {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    
+    // Position canvas for z-index layering with video background
+    this.renderer.domElement.style.position = 'relative';
+    this.renderer.domElement.style.zIndex = '2';
     document.body.appendChild(this.renderer.domElement);
 
     // Lighting
@@ -572,21 +580,26 @@ export class SceneManager {
     
     this.carpetTime += deltaTime;
     
-    // Subtle floating/bobbing motion
-    const bobAmount = Math.sin(this.carpetTime * 1.5) * 0.15;
-    const tiltX = Math.sin(this.carpetTime * 0.8) * 0.02;
-    const tiltZ = Math.cos(this.carpetTime * 0.6) * 0.02;
+    // More dramatic floating/bobbing motion for flying carpet feel
+    const bobAmount = Math.sin(this.carpetTime * 1.2) * 0.25;
+    const swayX = Math.sin(this.carpetTime * 0.7) * 0.03;
+    const swayZ = Math.cos(this.carpetTime * 0.5) * 0.025;
+    const wobble = Math.sin(this.carpetTime * 2.5) * 0.01;
     
-    // Apply to floor and blocks
+    // Apply to floor - the "carpet"
     if (this.floorMesh) {
       this.floorMesh.position.y = -0.01 + bobAmount;
-      this.floorMesh.rotation.x = -Math.PI / 2 + tiltX;
-      this.floorMesh.rotation.z = tiltZ;
+      this.floorMesh.rotation.x = -Math.PI / 2 + swayX;
+      this.floorMesh.rotation.z = swayZ + wobble;
     }
     
-    // Apply subtle movement to instanced blocks too
-    this.hardBlockPool.position.y = bobAmount;
-    this.softBlockPool.position.y = bobAmount;
+    // Apply to blocks with slight delay for wave effect
+    this.hardBlockPool.position.y = bobAmount * 0.9;
+    this.softBlockPool.position.y = bobAmount * 0.95;
+    
+    // Subtle camera sway for immersion
+    const camSway = Math.sin(this.carpetTime * 0.4) * 0.1;
+    this.camera.position.x += (camSway - this.camera.position.x + (GRID_SIZE - 1) / 2) * 0.02;
   }
 
   dispose(): void {
